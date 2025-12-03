@@ -1,11 +1,40 @@
-dag_type: spec
+dag_type: stub
 description: Generated workflow from UI.
 name: fda_device_submission_plan
 nodes:
   address_fda_comments_and_questions:
     agent: false
+    code_node_type: stub
     description: Verify that all comments and questions are resolved and that the
       submission meets the FDA's requirements.
+    implementation: "from pydantic import BaseModel, Field\n\n\nclass TrackFdaReviewProgressOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for track_fda_review_progress node outputs.\"\"\"\n\
+      \    review_status: str = Field(..., description=\"Current status of the FDA\
+      \ review, e.g., 'Pending', 'In Review', 'Completed'.\")\n    timeline_estimate_days:\
+      \ int = Field(..., description=\"Estimated number of days remaining until the\
+      \ review is concluded.\")\n    pending_requests: str = Field(..., description=\"\
+      List of any FDA requests for additional information or clarification that are\
+      \ still pending.\")\n    last_update_timestamp: str = Field(..., description=\"\
+      ISO 8601 timestamp of the most recent review status update.\")\n    responded_to_requests:\
+      \ bool = Field(..., description=\"Whether all pending FDA requests have been\
+      \ responded to.\")\n    response_summary: str = Field(..., description=\"Brief\
+      \ summary of the responses submitted to the FDA.\")\n\n\nclass AddressFdaCommentsAndQuestionsOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for address_fda_comments_and_questions node outputs.\"\
+      \"\"\n    resolved_all: bool = Field(..., description=\"Indicates whether all\
+      \ FDA comments and questions have been fully resolved.\")\n    resolved_comments:\
+      \ str = Field(..., description=\"List of identifiers or titles of the FDA comments\
+      \ and questions that have been resolved.\")\n    resolution_summary: str = Field(...,\
+      \ description=\"Concise textual summary of how each resolved comment or question\
+      \ was addressed.\")\n\n\ndef address_fda_comments_and_questions(track_fda_review_progress_input:\
+      \ TrackFdaReviewProgressOutput, **kwargs) -> AddressFdaCommentsAndQuestionsOutput:\n\
+      \    \"\"\"Verify that all comments and questions are resolved and that the\
+      \ submission meets the FDA's requirements.\n\n    Args:\n        track_fda_review_progress_input:\
+      \ Input from the 'track_fda_review_progress' node.\n        **kwargs: Additional\
+      \ keyword arguments.\n\n    Returns:\n        AddressFdaCommentsAndQuestionsOutput:\
+      \ Object containing outputs for this node.\n    \"\"\"\n    # TODO: Implement\
+      \ this function\n\n    # Return stub output with placeholder values\n    return\
+      \ AddressFdaCommentsAndQuestionsOutput(\n        resolved_all=False,\n     \
+      \   resolved_comments=\"\",\n        resolution_summary=\"\",\n    )"
     name: address_fda_comments_and_questions
     nodes_depended_on:
     - track_fda_review_progress
@@ -88,10 +117,30 @@ nodes:
           string) and validate against the schema before returning.
     prompt: Respond to any comments or questions raised by the FDA during the review
       process, ensuring that all queries are addressed promptly and thoroughly.
+    shims: []
   clarify_device_type:
     agent: false
+    code_node_type: stub
     description: Identify the appropriate device type, e.g., Class I, II, or III,
       and determine any specific regulations or requirements that apply.
+    implementation: "from pydantic import BaseModel, Field\n\n\nclass ClarifyDeviceTypeOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for clarify_device_type node outputs.\"\"\"\n    device_class:\
+      \ str = Field(..., description=\"The determined class of the device (e.g., Class\
+      \ I, Class II, Class III).\")\n    device_class_code: str = Field(..., description=\"\
+      Short code representing the device class (I, II, or III).\")\n    regulatory_requirements:\
+      \ str = Field(..., description=\"List of specific FDA regulations, guidance\
+      \ documents, or requirements that apply to the device class.\")\n    classification_confidence:\
+      \ float = Field(..., description=\"Confidence score (0\\u20111) that the classification\
+      \ is correct.\")\n\n\ndef clarify_device_type(general_input: str, **kwargs)\
+      \ -> ClarifyDeviceTypeOutput:\n    \"\"\"Identify the appropriate device type,\
+      \ e.g., Class I, II, or III, and determine any specific regulations or requirements\
+      \ that apply.\n\n    Args:\n        general_input: General input string for\
+      \ the root node.\n        **kwargs: Additional keyword arguments.\n\n    Returns:\n\
+      \        ClarifyDeviceTypeOutput: Object containing outputs for this node.\n\
+      \    \"\"\"\n    # TODO: Implement this function\n\n    # Return stub output\
+      \ with placeholder values\n    return ClarifyDeviceTypeOutput(\n        device_class=\"\
+      \",\n        device_class_code=\"\",\n        regulatory_requirements=\"\",\n\
+      \        classification_confidence=0.0,\n    )"
     name: clarify_device_type
     nodes_depended_on: []
     nodes_dependent_on: []
@@ -177,10 +226,65 @@ nodes:
           are non‑empty for Class II/III).
     prompt: Determine the correct classification for the new device under the FDA's
       medical device regulations (21 CFR Part 801).
+    shims: []
   develop_device_documentation:
     agent: false
+    code_node_type: stub
     description: Prepare all necessary documents, such as design control files, testing
       reports, and labeling specifications, to support the device's FDA submission.
+    implementation: "from pydantic import BaseModel, Field\nfrom typing import List\n\
+      \n\nclass ResearchFdaRegulationsOutput(BaseModel):\n    \"\"\"Pydantic model\
+      \ for research_fda_regulations node outputs.\"\"\"\n    regulation_summary:\
+      \ str = Field(..., description=\"Concise summary of the most relevant FDA regulations\
+      \ for the device.\")\n    guidance_documents: str = Field(..., description=\"\
+      List of guidance document titles or identifiers that apply to the device.\"\
+      )\n    regulation_areas: str = Field(..., description=\"List of regulation areas\
+      \ (e.g., \\\"510(k)\\\", \\\"PMA\\\", \\\"De Novo\\\") relevant to the device.\"\
+      )\n    compliance_checklist: str = Field(..., description=\"Checklist items\
+      \ that must be verified for regulatory compliance.\")\n    regulation_versions:\
+      \ str = Field(..., description=\"Version numbers or effective dates of the regulations\
+      \ and guidance documents.\")\n    is_compliant: bool = Field(..., description=\"\
+      Preliminary assessment of whether the device meets the identified regulatory\
+      \ requirements.\")\n    required_documents: str = Field(..., description=\"\
+      List of documents that must be prepared for FDA submission.\")\n\n\nclass PerformCompetitiveAnalysisOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for perform_competitive_analysis node outputs.\"\"\
+      \"\n    competitor_names: List[str] = Field(..., description=\"Names of comparable\
+      \ medical devices in the market.\")\n    market_share_percent: List[float] =\
+      \ Field(..., description=\"Estimated market share percentage for each competitor.\"\
+      )\n    regulatory_status: List[str] = Field(..., description=\"Regulatory pathway\
+      \ status for each competitor (e.g., 510(k), PMA, De Novo).\")\n    differentiation_factors:\
+      \ List[str] = Field(..., description=\"Key factors where the device differs\
+      \ from competitors (e.g., technology, cost, performance).\")\n    strengths_weaknesses:\
+      \ List[str] = Field(..., description=\"Summary bullet points of strengths and\
+      \ weaknesses of each competitor.\")\n    analysis_summary: str = Field(...,\
+      \ description=\"Concise summary of the competitive analysis highlighting strategic\
+      \ insights.\")\n\n\nclass DevelopDeviceDocumentationOutput(BaseModel):\n   \
+      \ \"\"\"Pydantic model for develop_device_documentation node outputs.\"\"\"\n\
+      \    design_control_files: List[str] = Field(..., description=\"List of design\
+      \ control file names or identifiers included in the documentation package.\"\
+      )\n    testing_reports: List[str] = Field(..., description=\"List of testing\
+      \ report titles or identifiers that demonstrate device performance and safety.\"\
+      )\n    labeling_specifications: List[str] = Field(..., description=\"List of\
+      \ labeling specification documents that outline device labeling requirements.\"\
+      )\n    regulatory_compliance_summary: str = Field(..., description=\"Brief summary\
+      \ of how the documentation meets FDA regulatory requirements.\")\n    submission_package_ready:\
+      \ bool = Field(..., description=\"Flag indicating whether the documentation\
+      \ package is complete and ready for submission.\")\n    number_of_documents:\
+      \ int = Field(..., description=\"Total count of documents included in the submission\
+      \ package.\")\n\n\ndef develop_device_documentation(research_fda_regulations_input:\
+      \ ResearchFdaRegulationsOutput, perform_competitive_analysis_input: PerformCompetitiveAnalysisOutput,\
+      \ **kwargs) -> DevelopDeviceDocumentationOutput:\n    \"\"\"Prepare all necessary\
+      \ documents, such as design control files, testing reports, and labeling specifications,\
+      \ to support the device's FDA submission.\n\n    Args:\n        research_fda_regulations_input:\
+      \ Input from the 'research_fda_regulations' node.\n        perform_competitive_analysis_input:\
+      \ Input from the 'perform_competitive_analysis' node.\n        **kwargs: Additional\
+      \ keyword arguments.\n\n    Returns:\n        DevelopDeviceDocumentationOutput:\
+      \ Object containing outputs for this node.\n    \"\"\"\n    # TODO: Implement\
+      \ this function\n\n    # Return stub output with placeholder values\n    return\
+      \ DevelopDeviceDocumentationOutput(\n        design_control_files=[],\n    \
+      \    testing_reports=[],\n        labeling_specifications=[],\n        regulatory_compliance_summary=\"\
+      \",\n        submission_package_ready=False,\n        number_of_documents=0,\n\
+      \    )"
     name: develop_device_documentation
     nodes_depended_on:
     - research_fda_regulations
@@ -287,10 +391,62 @@ nodes:
           in required_documents are present and that no required items are missing.
     prompt: Create a comprehensive documentation package for the new device, including
       design, testing, and labeling information.
+    shims: []
   identify_required_fda_submissions:
     agent: false
+    code_node_type: stub
     description: Identify the necessary submissions, including Pre-Submission communications,
       and prepare accordingly.
+    implementation: "from pydantic import BaseModel, Field\nfrom typing import List\n\
+      \n\nclass ResearchFdaRegulationsOutput(BaseModel):\n    \"\"\"Pydantic model\
+      \ for research_fda_regulations node outputs.\"\"\"\n    regulation_summary:\
+      \ str = Field(..., description=\"Concise summary of the most relevant FDA regulations\
+      \ for the device.\")\n    guidance_documents: str = Field(..., description=\"\
+      List of guidance document titles or identifiers that apply to the device.\"\
+      )\n    regulation_areas: str = Field(..., description=\"List of regulation areas\
+      \ (e.g., \\\"510(k)\\\", \\\"PMA\\\", \\\"De Novo\\\") relevant to the device.\"\
+      )\n    compliance_checklist: str = Field(..., description=\"Checklist items\
+      \ that must be verified for regulatory compliance.\")\n    regulation_versions:\
+      \ str = Field(..., description=\"Version numbers or effective dates of the regulations\
+      \ and guidance documents.\")\n    is_compliant: bool = Field(..., description=\"\
+      Preliminary assessment of whether the device meets the identified regulatory\
+      \ requirements.\")\n    required_documents: str = Field(..., description=\"\
+      List of documents that must be prepared for FDA submission.\")\n\n\nclass DevelopDeviceDocumentationOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for develop_device_documentation node outputs.\"\"\
+      \"\n    design_control_files: List[str] = Field(..., description=\"List of design\
+      \ control file names or identifiers included in the documentation package.\"\
+      )\n    testing_reports: List[str] = Field(..., description=\"List of testing\
+      \ report titles or identifiers that demonstrate device performance and safety.\"\
+      )\n    labeling_specifications: List[str] = Field(..., description=\"List of\
+      \ labeling specification documents that outline device labeling requirements.\"\
+      )\n    regulatory_compliance_summary: str = Field(..., description=\"Brief summary\
+      \ of how the documentation meets FDA regulatory requirements.\")\n    submission_package_ready:\
+      \ bool = Field(..., description=\"Flag indicating whether the documentation\
+      \ package is complete and ready for submission.\")\n    number_of_documents:\
+      \ int = Field(..., description=\"Total count of documents included in the submission\
+      \ package.\")\n\n\nclass IdentifyRequiredFdaSubmissionsOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for identify_required_fda_submissions node outputs.\"\
+      \"\"\n    submission_type: str = Field(..., description=\"The type of FDA submission\
+      \ required (e.g., 510(k), PMA, De Novo).\")\n    pre_submission_communications:\
+      \ str = Field(..., description=\"List of Pre-Submission communications or inquiries\
+      \ made to the FDA.\")\n    required_documents: str = Field(..., description=\"\
+      List of documents required for the identified submission.\")\n    submission_deadline:\
+      \ str = Field(..., description=\"Deadline date for completing the submission\
+      \ (ISO format).\")\n    is_submission_complete: bool = Field(..., description=\"\
+      Whether the submission package has been fully prepared.\")\n\n\ndef identify_required_fda_submissions(research_fda_regulations_input:\
+      \ ResearchFdaRegulationsOutput, develop_device_documentation_input: DevelopDeviceDocumentationOutput,\
+      \ **kwargs) -> IdentifyRequiredFdaSubmissionsOutput:\n    \"\"\"Identify the\
+      \ necessary submissions, including Pre-Submission communications, and prepare\
+      \ accordingly.\n\n    Args:\n        research_fda_regulations_input: Input from\
+      \ the 'research_fda_regulations' node.\n        develop_device_documentation_input:\
+      \ Input from the 'develop_device_documentation' node.\n        **kwargs: Additional\
+      \ keyword arguments.\n\n    Returns:\n        IdentifyRequiredFdaSubmissionsOutput:\
+      \ Object containing outputs for this node.\n    \"\"\"\n    # TODO: Implement\
+      \ this function\n\n    # Return stub output with placeholder values\n    return\
+      \ IdentifyRequiredFdaSubmissionsOutput(\n        submission_type=\"\",\n   \
+      \     pre_submission_communications=\"\",\n        required_documents=\"\",\n\
+      \        submission_deadline=\"\",\n        is_submission_complete=False,\n\
+      \    )"
     name: identify_required_fda_submissions
     nodes_depended_on:
     - research_fda_regulations
@@ -372,10 +528,43 @@ nodes:
           are present in the current repository and the current date is before submission_deadline.
     prompt: Determine the specific FDA submissions required for the device, e.g.,
       510(k) or PMA.
+    shims: []
   obtain_fda_clearance_or_approval:
     agent: false
+    code_node_type: stub
     description: Verify that the device has received the necessary clearance or approval,
       and obtain a copy of the approval letter or certificate.
+    implementation: "from pydantic import BaseModel, Field\n\n\nclass AddressFdaCommentsAndQuestionsOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for address_fda_comments_and_questions node outputs.\"\
+      \"\"\n    resolved_all: bool = Field(..., description=\"Indicates whether all\
+      \ FDA comments and questions have been fully resolved.\")\n    resolved_comments:\
+      \ str = Field(..., description=\"List of identifiers or titles of the FDA comments\
+      \ and questions that have been resolved.\")\n    resolution_summary: str = Field(...,\
+      \ description=\"Concise textual summary of how each resolved comment or question\
+      \ was addressed.\")\n\n\nclass ObtainFdaClearanceOrApprovalOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for obtain_fda_clearance_or_approval node outputs.\"\
+      \"\"\n    clearance_status: bool = Field(..., description=\"True if the device\
+      \ has received FDA clearance, False otherwise.\")\n    approval_letter_path:\
+      \ str = Field(..., description=\"File path or identifier of the received approval\
+      \ letter or certificate.\")\n    approval_date: str = Field(..., description=\"\
+      Date when the clearance or approval was granted (ISO format).\")\n    comments_resolved_count:\
+      \ int = Field(..., description=\"Number of FDA comments or questions that were\
+      \ resolved before obtaining clearance.\")\n    comments_pending_count: int =\
+      \ Field(..., description=\"Number of FDA comments or questions still pending\
+      \ after clearance attempt.\")\n    clearance_document_valid: bool = Field(...,\
+      \ description=\"Whether the clearance document is valid and meets FDA formatting\
+      \ requirements.\")\n\n\ndef obtain_fda_clearance_or_approval(address_fda_comments_and_questions_input:\
+      \ AddressFdaCommentsAndQuestionsOutput, **kwargs) -> ObtainFdaClearanceOrApprovalOutput:\n\
+      \    \"\"\"Verify that the device has received the necessary clearance or approval,\
+      \ and obtain a copy of the approval letter or certificate.\n\n    Args:\n  \
+      \      address_fda_comments_and_questions_input: Input from the 'address_fda_comments_and_questions'\
+      \ node.\n        **kwargs: Additional keyword arguments.\n\n    Returns:\n \
+      \       ObtainFdaClearanceOrApprovalOutput: Object containing outputs for this\
+      \ node.\n    \"\"\"\n    # TODO: Implement this function\n\n    # Return stub\
+      \ output with placeholder values\n    return ObtainFdaClearanceOrApprovalOutput(\n\
+      \        clearance_status=False,\n        approval_letter_path=\"\",\n     \
+      \   approval_date=\"\",\n        comments_resolved_count=0,\n        comments_pending_count=0,\n\
+      \        clearance_document_valid=False,\n    )"
     name: obtain_fda_clearance_or_approval
     nodes_depended_on:
     - address_fda_comments_and_questions
@@ -482,10 +671,49 @@ nodes:
           traceability.
     prompt: Await FDA clearance or approval and document the outcome of the review
       process.
+    shims: []
   perform_competitive_analysis:
     agent: false
+    code_node_type: stub
     description: Conduct a competitive analysis to understand the market and regulatory
       environment for the device.
+    implementation: "from pydantic import BaseModel, Field\nfrom typing import List\n\
+      \n\nclass ResearchFdaRegulationsOutput(BaseModel):\n    \"\"\"Pydantic model\
+      \ for research_fda_regulations node outputs.\"\"\"\n    regulation_summary:\
+      \ str = Field(..., description=\"Concise summary of the most relevant FDA regulations\
+      \ for the device.\")\n    guidance_documents: str = Field(..., description=\"\
+      List of guidance document titles or identifiers that apply to the device.\"\
+      )\n    regulation_areas: str = Field(..., description=\"List of regulation areas\
+      \ (e.g., \\\"510(k)\\\", \\\"PMA\\\", \\\"De Novo\\\") relevant to the device.\"\
+      )\n    compliance_checklist: str = Field(..., description=\"Checklist items\
+      \ that must be verified for regulatory compliance.\")\n    regulation_versions:\
+      \ str = Field(..., description=\"Version numbers or effective dates of the regulations\
+      \ and guidance documents.\")\n    is_compliant: bool = Field(..., description=\"\
+      Preliminary assessment of whether the device meets the identified regulatory\
+      \ requirements.\")\n    required_documents: str = Field(..., description=\"\
+      List of documents that must be prepared for FDA submission.\")\n\n\nclass PerformCompetitiveAnalysisOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for perform_competitive_analysis node outputs.\"\"\
+      \"\n    competitor_names: List[str] = Field(..., description=\"Names of comparable\
+      \ medical devices in the market.\")\n    market_share_percent: List[float] =\
+      \ Field(..., description=\"Estimated market share percentage for each competitor.\"\
+      )\n    regulatory_status: List[str] = Field(..., description=\"Regulatory pathway\
+      \ status for each competitor (e.g., 510(k), PMA, De Novo).\")\n    differentiation_factors:\
+      \ List[str] = Field(..., description=\"Key factors where the device differs\
+      \ from competitors (e.g., technology, cost, performance).\")\n    strengths_weaknesses:\
+      \ List[str] = Field(..., description=\"Summary bullet points of strengths and\
+      \ weaknesses of each competitor.\")\n    analysis_summary: str = Field(...,\
+      \ description=\"Concise summary of the competitive analysis highlighting strategic\
+      \ insights.\")\n\n\ndef perform_competitive_analysis(research_fda_regulations_input:\
+      \ ResearchFdaRegulationsOutput, **kwargs) -> PerformCompetitiveAnalysisOutput:\n\
+      \    \"\"\"Conduct a competitive analysis to understand the market and regulatory\
+      \ environment for the device.\n\n    Args:\n        research_fda_regulations_input:\
+      \ Input from the 'research_fda_regulations' node.\n        **kwargs: Additional\
+      \ keyword arguments.\n\n    Returns:\n        PerformCompetitiveAnalysisOutput:\
+      \ Object containing outputs for this node.\n    \"\"\"\n    # TODO: Implement\
+      \ this function\n\n    # Return stub output with placeholder values\n    return\
+      \ PerformCompetitiveAnalysisOutput(\n        competitor_names=[],\n        market_share_percent=[],\n\
+      \        regulatory_status=[],\n        differentiation_factors=[],\n      \
+      \  strengths_weaknesses=[],\n        analysis_summary=\"\",\n    )"
     name: perform_competitive_analysis
     nodes_depended_on:
     - research_fda_regulations
@@ -588,10 +816,63 @@ nodes:
           ensuring type consistency (List[str], List[float], str) and completeness.
     prompt: Analyze the competitive landscape of similar medical devices and identify
       areas for differentiation.
+    shims: []
   prepare_fda_submission_package:
     agent: false
+    code_node_type: stub
     description: Ensure that the package includes all required information, e.g.,
       device description, technical specifications, and clinical data.
+    implementation: "from pydantic import BaseModel, Field\nfrom typing import List\n\
+      \n\nclass IdentifyRequiredFdaSubmissionsOutput(BaseModel):\n    \"\"\"Pydantic\
+      \ model for identify_required_fda_submissions node outputs.\"\"\"\n    submission_type:\
+      \ str = Field(..., description=\"The type of FDA submission required (e.g.,\
+      \ 510(k), PMA, De Novo).\")\n    pre_submission_communications: str = Field(...,\
+      \ description=\"List of Pre-Submission communications or inquiries made to the\
+      \ FDA.\")\n    required_documents: str = Field(..., description=\"List of documents\
+      \ required for the identified submission.\")\n    submission_deadline: str =\
+      \ Field(..., description=\"Deadline date for completing the submission (ISO\
+      \ format).\")\n    is_submission_complete: bool = Field(..., description=\"\
+      Whether the submission package has been fully prepared.\")\n\n\nclass DevelopDeviceDocumentationOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for develop_device_documentation node outputs.\"\"\
+      \"\n    design_control_files: List[str] = Field(..., description=\"List of design\
+      \ control file names or identifiers included in the documentation package.\"\
+      )\n    testing_reports: List[str] = Field(..., description=\"List of testing\
+      \ report titles or identifiers that demonstrate device performance and safety.\"\
+      )\n    labeling_specifications: List[str] = Field(..., description=\"List of\
+      \ labeling specification documents that outline device labeling requirements.\"\
+      )\n    regulatory_compliance_summary: str = Field(..., description=\"Brief summary\
+      \ of how the documentation meets FDA regulatory requirements.\")\n    submission_package_ready:\
+      \ bool = Field(..., description=\"Flag indicating whether the documentation\
+      \ package is complete and ready for submission.\")\n    number_of_documents:\
+      \ int = Field(..., description=\"Total count of documents included in the submission\
+      \ package.\")\n\n\nclass PrepareFdaSubmissionPackageOutput(BaseModel):\n   \
+      \ \"\"\"Pydantic model for prepare_fda_submission_package node outputs.\"\"\"\
+      \n    package_id: str = Field(..., description=\"Unique identifier for the submission\
+      \ package.\")\n    device_description: str = Field(..., description=\"Summary\
+      \ of the device description.\")\n    technical_specifications: str = Field(...,\
+      \ description=\"Technical specifications of the device.\")\n    clinical_data_summary:\
+      \ str = Field(..., description=\"Summary of clinical data included.\")\n   \
+      \ required_documents: str = Field(..., description=\"List of required document\
+      \ filenames or titles.\")\n    format_compliant: bool = Field(..., description=\"\
+      Whether the package complies with the FDA submission format.\")\n    total_pages:\
+      \ int = Field(..., description=\"Total number of pages in the package.\")\n\
+      \    submission_status: str = Field(..., description=\"Current status of the\
+      \ package (e.g., ready, pending).\")\n    submission_timestamp: str = Field(...,\
+      \ description=\"Timestamp when the package was assembled.\")\n\n\ndef prepare_fda_submission_package(identify_required_fda_submissions_input:\
+      \ IdentifyRequiredFdaSubmissionsOutput, develop_device_documentation_input:\
+      \ DevelopDeviceDocumentationOutput, **kwargs) -> PrepareFdaSubmissionPackageOutput:\n\
+      \    \"\"\"Ensure that the package includes all required information, e.g.,\
+      \ device description, technical specifications, and clinical data.\n\n    Args:\n\
+      \        identify_required_fda_submissions_input: Input from the 'identify_required_fda_submissions'\
+      \ node.\n        develop_device_documentation_input: Input from the 'develop_device_documentation'\
+      \ node.\n        **kwargs: Additional keyword arguments.\n\n    Returns:\n \
+      \       PrepareFdaSubmissionPackageOutput: Object containing outputs for this\
+      \ node.\n    \"\"\"\n    # TODO: Implement this function\n\n    # Return stub\
+      \ output with placeholder values\n    return PrepareFdaSubmissionPackageOutput(\n\
+      \        package_id=\"\",\n        device_description=\"\",\n        technical_specifications=\"\
+      \",\n        clinical_data_summary=\"\",\n        required_documents=\"\",\n\
+      \        format_compliant=False,\n        total_pages=0,\n        submission_status=\"\
+      \",\n        submission_timestamp=\"\",\n    )"
     name: prepare_fda_submission_package
     nodes_depended_on:
     - identify_required_fda_submissions
@@ -703,10 +984,44 @@ nodes:
           at the moment the package is finalized.
     prompt: Assemble all necessary documents and information into a submission package
       for the FDA, following the specified format.
+    shims: []
   research_fda_regulations:
     agent: false
+    code_node_type: stub
     description: Review the FDA's Code of Federal Regulations, Guidance Documents,
       and other relevant resources to ensure compliance.
+    implementation: "from pydantic import BaseModel, Field\n\n\nclass ClarifyDeviceTypeOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for clarify_device_type node outputs.\"\"\"\n    device_class:\
+      \ str = Field(..., description=\"The determined class of the device (e.g., Class\
+      \ I, Class II, Class III).\")\n    device_class_code: str = Field(..., description=\"\
+      Short code representing the device class (I, II, or III).\")\n    regulatory_requirements:\
+      \ str = Field(..., description=\"List of specific FDA regulations, guidance\
+      \ documents, or requirements that apply to the device class.\")\n    classification_confidence:\
+      \ float = Field(..., description=\"Confidence score (0\\u20111) that the classification\
+      \ is correct.\")\n\n\nclass ResearchFdaRegulationsOutput(BaseModel):\n    \"\
+      \"\"Pydantic model for research_fda_regulations node outputs.\"\"\"\n    regulation_summary:\
+      \ str = Field(..., description=\"Concise summary of the most relevant FDA regulations\
+      \ for the device.\")\n    guidance_documents: str = Field(..., description=\"\
+      List of guidance document titles or identifiers that apply to the device.\"\
+      )\n    regulation_areas: str = Field(..., description=\"List of regulation areas\
+      \ (e.g., \\\"510(k)\\\", \\\"PMA\\\", \\\"De Novo\\\") relevant to the device.\"\
+      )\n    compliance_checklist: str = Field(..., description=\"Checklist items\
+      \ that must be verified for regulatory compliance.\")\n    regulation_versions:\
+      \ str = Field(..., description=\"Version numbers or effective dates of the regulations\
+      \ and guidance documents.\")\n    is_compliant: bool = Field(..., description=\"\
+      Preliminary assessment of whether the device meets the identified regulatory\
+      \ requirements.\")\n    required_documents: str = Field(..., description=\"\
+      List of documents that must be prepared for FDA submission.\")\n\n\ndef research_fda_regulations(clarify_device_type_input:\
+      \ ClarifyDeviceTypeOutput, **kwargs) -> ResearchFdaRegulationsOutput:\n    \"\
+      \"\"Review the FDA's Code of Federal Regulations, Guidance Documents, and other\
+      \ relevant resources to ensure compliance.\n\n    Args:\n        clarify_device_type_input:\
+      \ Input from the 'clarify_device_type' node.\n        **kwargs: Additional keyword\
+      \ arguments.\n\n    Returns:\n        ResearchFdaRegulationsOutput: Object containing\
+      \ outputs for this node.\n    \"\"\"\n    # TODO: Implement this function\n\n\
+      \    # Return stub output with placeholder values\n    return ResearchFdaRegulationsOutput(\n\
+      \        regulation_summary=\"\",\n        guidance_documents=\"\",\n      \
+      \  regulation_areas=\"\",\n        compliance_checklist=\"\",\n        regulation_versions=\"\
+      \",\n        is_compliant=False,\n        required_documents=\"\",\n    )"
     name: research_fda_regulations
     nodes_depended_on:
     - clarify_device_type
@@ -822,11 +1137,50 @@ nodes:
           "Design History File", "Risk Analysis", "Labeling Specification").
     prompt: Research all relevant FDA regulations, guidelines, and requirements for
       the specific device type identified.
+    shims: []
   submit_fda_application:
     agent: false
+    code_node_type: stub
     description: Verify that the submission is complete and accurately reflects the
       device's information, then transmit the FDA application package using the FDA’s
       electronic submission portal or other approved method.
+    implementation: "from pydantic import BaseModel, Field\n\n\nclass PrepareFdaSubmissionPackageOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for prepare_fda_submission_package node outputs.\"\
+      \"\"\n    package_id: str = Field(..., description=\"Unique identifier for the\
+      \ submission package.\")\n    device_description: str = Field(..., description=\"\
+      Summary of the device description.\")\n    technical_specifications: str = Field(...,\
+      \ description=\"Technical specifications of the device.\")\n    clinical_data_summary:\
+      \ str = Field(..., description=\"Summary of clinical data included.\")\n   \
+      \ required_documents: str = Field(..., description=\"List of required document\
+      \ filenames or titles.\")\n    format_compliant: bool = Field(..., description=\"\
+      Whether the package complies with the FDA submission format.\")\n    total_pages:\
+      \ int = Field(..., description=\"Total number of pages in the package.\")\n\
+      \    submission_status: str = Field(..., description=\"Current status of the\
+      \ package (e.g., ready, pending).\")\n    submission_timestamp: str = Field(...,\
+      \ description=\"Timestamp when the package was assembled.\")\n\n\nclass SubmitFdaApplicationOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for submit_fda_application node outputs.\"\"\"\n \
+      \   submission_id: str = Field(..., description=\"Unique identifier for the\
+      \ FDA submission\")\n    submission_status: str = Field(..., description=\"\
+      Current status of the submission (e.g., 'Pending', 'Submitted', 'Approved')\"\
+      )\n    documents_submitted: str = Field(..., description=\"List of document\
+      \ names included in the submission package\")\n    submission_date: str = Field(...,\
+      \ description=\"Date the submission was made (ISO 8601 format)\")\n    success_flag:\
+      \ bool = Field(..., description=\"Whether the submission was successfully transmitted\
+      \ without errors\")\n    review_response_received: bool = Field(..., description=\"\
+      Whether a response or request for additional information has been received from\
+      \ the FDA\")\n\n\ndef submit_fda_application(prepare_fda_submission_package_input:\
+      \ PrepareFdaSubmissionPackageOutput, **kwargs) -> SubmitFdaApplicationOutput:\n\
+      \    \"\"\"Verify that the submission is complete and accurately reflects the\
+      \ device's information, then transmit the FDA application package using the\
+      \ FDA’s electronic submission portal or other approved method.\n\n    Args:\n\
+      \        prepare_fda_submission_package_input: Input from the 'prepare_fda_submission_package'\
+      \ node.\n        **kwargs: Additional keyword arguments.\n\n    Returns:\n \
+      \       SubmitFdaApplicationOutput: Object containing outputs for this node.\n\
+      \    \"\"\"\n    # TODO: Implement this function\n\n    # Return stub output\
+      \ with placeholder values\n    return SubmitFdaApplicationOutput(\n        submission_id=\"\
+      \",\n        submission_status=\"\",\n        documents_submitted=\"\",\n  \
+      \      submission_date=\"\",\n        success_flag=False,\n        review_response_received=False,\n\
+      \    )"
     name: submit_fda_application
     nodes_depended_on:
     - prepare_fda_submission_package
@@ -940,10 +1294,45 @@ nodes:
           halt further progression until resolved.
     prompt: Submit the completed FDA application package, including all required documents
       and information, via the specified submission method.
+    shims: []
   track_fda_review_progress:
     agent: false
+    code_node_type: stub
     description: Track the review progress, including any updates or changes to the
       review timeline.
+    implementation: "from pydantic import BaseModel, Field\n\n\nclass SubmitFdaApplicationOutput(BaseModel):\n\
+      \    \"\"\"Pydantic model for submit_fda_application node outputs.\"\"\"\n \
+      \   submission_id: str = Field(..., description=\"Unique identifier for the\
+      \ FDA submission\")\n    submission_status: str = Field(..., description=\"\
+      Current status of the submission (e.g., 'Pending', 'Submitted', 'Approved')\"\
+      )\n    documents_submitted: str = Field(..., description=\"List of document\
+      \ names included in the submission package\")\n    submission_date: str = Field(...,\
+      \ description=\"Date the submission was made (ISO 8601 format)\")\n    success_flag:\
+      \ bool = Field(..., description=\"Whether the submission was successfully transmitted\
+      \ without errors\")\n    review_response_received: bool = Field(..., description=\"\
+      Whether a response or request for additional information has been received from\
+      \ the FDA\")\n\n\nclass TrackFdaReviewProgressOutput(BaseModel):\n    \"\"\"\
+      Pydantic model for track_fda_review_progress node outputs.\"\"\"\n    review_status:\
+      \ str = Field(..., description=\"Current status of the FDA review, e.g., 'Pending',\
+      \ 'In Review', 'Completed'.\")\n    timeline_estimate_days: int = Field(...,\
+      \ description=\"Estimated number of days remaining until the review is concluded.\"\
+      )\n    pending_requests: str = Field(..., description=\"List of any FDA requests\
+      \ for additional information or clarification that are still pending.\")\n \
+      \   last_update_timestamp: str = Field(..., description=\"ISO 8601 timestamp\
+      \ of the most recent review status update.\")\n    responded_to_requests: bool\
+      \ = Field(..., description=\"Whether all pending FDA requests have been responded\
+      \ to.\")\n    response_summary: str = Field(..., description=\"Brief summary\
+      \ of the responses submitted to the FDA.\")\n\n\ndef track_fda_review_progress(submit_fda_application_input:\
+      \ SubmitFdaApplicationOutput, **kwargs) -> TrackFdaReviewProgressOutput:\n \
+      \   \"\"\"Track the review progress, including any updates or changes to the\
+      \ review timeline.\n\n    Args:\n        submit_fda_application_input: Input\
+      \ from the 'submit_fda_application' node.\n        **kwargs: Additional keyword\
+      \ arguments.\n\n    Returns:\n        TrackFdaReviewProgressOutput: Object containing\
+      \ outputs for this node.\n    \"\"\"\n    # TODO: Implement this function\n\n\
+      \    # Return stub output with placeholder values\n    return TrackFdaReviewProgressOutput(\n\
+      \        review_status=\"\",\n        timeline_estimate_days=0,\n        pending_requests=\"\
+      \",\n        last_update_timestamp=\"\",\n        responded_to_requests=False,\n\
+      \        response_summary=\"\",\n    )"
     name: track_fda_review_progress
     nodes_depended_on:
     - submit_fda_application
@@ -1044,3 +1433,4 @@ nodes:
           consumption.
     prompt: Monitor the status of the FDA's review and respond to any requests for
       additional information or clarification.
+    shims: []
