@@ -1,6 +1,6 @@
 dag_type: plain_text
-description: Creates a comprehensive project plan for submitting a new device to the
-  FDA, including regulatory framework, device documentation, and overall project timeline.
+description: Generated workflow from UI to submit a medical device to the FDA for
+  approval.
 name: fda_device_submission_plan
 nodes:
   address_fda_comments_and_questions:
@@ -10,7 +10,8 @@ nodes:
     name: address_fda_comments_and_questions
     nodes_depended_on:
     - track_fda_review_progress
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - obtain_fda_clearance_or_approval
     prompt: Respond to any comments or questions raised by the FDA during the review
       process, ensuring that all queries are addressed promptly and thoroughly.
   clarify_device_type:
@@ -19,7 +20,8 @@ nodes:
       and determine any specific regulations or requirements that apply.
     name: clarify_device_type
     nodes_depended_on: []
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - research_fda_regulations
     prompt: Determine the correct classification for the new device under the FDA's
       medical device regulations (21 CFR Part 801).
   develop_device_documentation:
@@ -29,7 +31,10 @@ nodes:
     name: develop_device_documentation
     nodes_depended_on:
     - research_fda_regulations
-    nodes_dependent_on: []
+    - perform_competitive_analysis
+    nodes_dependent_on:
+    - identify_required_fda_submissions
+    - prepare_fda_submission_package
     prompt: Create a comprehensive documentation package for the new device, including
       design, testing, and labeling information.
   identify_required_fda_submissions:
@@ -40,7 +45,8 @@ nodes:
     nodes_depended_on:
     - research_fda_regulations
     - develop_device_documentation
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - prepare_fda_submission_package
     prompt: Determine the specific FDA submissions required for the device, e.g.,
       510(k) or PMA.
   obtain_fda_clearance_or_approval:
@@ -53,6 +59,17 @@ nodes:
     nodes_dependent_on: []
     prompt: Await FDA clearance or approval and document the outcome of the review
       process.
+  perform_competitive_analysis:
+    agent: false
+    description: Conduct a competitive analysis to understand the market and regulatory
+      environment for the device.
+    name: perform_competitive_analysis
+    nodes_depended_on:
+    - research_fda_regulations
+    nodes_dependent_on:
+    - develop_device_documentation
+    prompt: Analyze the competitive landscape of similar medical devices and identify
+      areas for differentiation.
   prepare_fda_submission_package:
     agent: false
     description: Ensure that the package includes all required information, e.g.,
@@ -61,7 +78,8 @@ nodes:
     nodes_depended_on:
     - identify_required_fda_submissions
     - develop_device_documentation
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - submit_fda_application
     prompt: Assemble all necessary documents and information into a submission package
       for the FDA, following the specified format.
   research_fda_regulations:
@@ -71,7 +89,10 @@ nodes:
     name: research_fda_regulations
     nodes_depended_on:
     - clarify_device_type
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - develop_device_documentation
+    - identify_required_fda_submissions
+    - perform_competitive_analysis
     prompt: Research all relevant FDA regulations, guidelines, and requirements for
       the specific device type identified.
   submit_fda_application:
@@ -81,7 +102,8 @@ nodes:
     name: submit_fda_application
     nodes_depended_on:
     - prepare_fda_submission_package
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - track_fda_review_progress
     prompt: Submit the completed FDA application package, including all required documents
       and information, via the specified submission method.
   track_fda_review_progress:
@@ -91,6 +113,7 @@ nodes:
     name: track_fda_review_progress
     nodes_depended_on:
     - submit_fda_application
-    nodes_dependent_on: []
+    nodes_dependent_on:
+    - address_fda_comments_and_questions
     prompt: Monitor the status of the FDA's review and respond to any requests for
       additional information or clarification.
