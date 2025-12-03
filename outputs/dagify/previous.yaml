@@ -1,6 +1,5 @@
-dag_type: plain_text
-description: Generated workflow from UI to submit a medical device to the FDA for
-  approval.
+dag_type: typed
+description: Generated workflow from UI.
 name: fda_device_submission_plan
 nodes:
   address_fda_comments_and_questions:
@@ -10,8 +9,20 @@ nodes:
     name: address_fda_comments_and_questions
     nodes_depended_on:
     - track_fda_review_progress
-    nodes_dependent_on:
-    - obtain_fda_clearance_or_approval
+    nodes_dependent_on: []
+    output_structure:
+    - description: Indicates whether all FDA comments and questions have been fully
+        resolved.
+      key: resolved_all
+      type: bool
+    - description: List of identifiers or titles of the FDA comments and questions
+        that have been resolved.
+      key: resolved_comments
+      type: List[str]
+    - description: Concise textual summary of how each resolved comment or question
+        was addressed.
+      key: resolution_summary
+      type: str
     prompt: Respond to any comments or questions raised by the FDA during the review
       process, ensuring that all queries are addressed promptly and thoroughly.
   clarify_device_type:
@@ -20,8 +31,22 @@ nodes:
       and determine any specific regulations or requirements that apply.
     name: clarify_device_type
     nodes_depended_on: []
-    nodes_dependent_on:
-    - research_fda_regulations
+    nodes_dependent_on: []
+    output_structure:
+    - description: The determined class of the device (e.g., Class I, Class II, Class
+        III).
+      key: device_class
+      type: str
+    - description: Short code representing the device class (I, II, or III).
+      key: device_class_code
+      type: str
+    - description: List of specific FDA regulations, guidance documents, or requirements
+        that apply to the device class.
+      key: regulatory_requirements
+      type: List[str]
+    - description: Confidence score (0‑1) that the classification is correct.
+      key: classification_confidence
+      type: float
     prompt: Determine the correct classification for the new device under the FDA's
       medical device regulations (21 CFR Part 801).
   develop_device_documentation:
@@ -32,9 +57,30 @@ nodes:
     nodes_depended_on:
     - research_fda_regulations
     - perform_competitive_analysis
-    nodes_dependent_on:
-    - identify_required_fda_submissions
-    - prepare_fda_submission_package
+    nodes_dependent_on: []
+    output_structure:
+    - description: List of design control file names or identifiers included in the
+        documentation package.
+      key: design_control_files
+      type: List[str]
+    - description: List of testing report titles or identifiers that demonstrate device
+        performance and safety.
+      key: testing_reports
+      type: List[str]
+    - description: List of labeling specification documents that outline device labeling
+        requirements.
+      key: labeling_specifications
+      type: List[str]
+    - description: Brief summary of how the documentation meets FDA regulatory requirements.
+      key: regulatory_compliance_summary
+      type: str
+    - description: Flag indicating whether the documentation package is complete and
+        ready for submission.
+      key: submission_package_ready
+      type: bool
+    - description: Total count of documents included in the submission package.
+      key: number_of_documents
+      type: int
     prompt: Create a comprehensive documentation package for the new device, including
       design, testing, and labeling information.
   identify_required_fda_submissions:
@@ -45,8 +91,24 @@ nodes:
     nodes_depended_on:
     - research_fda_regulations
     - develop_device_documentation
-    nodes_dependent_on:
-    - prepare_fda_submission_package
+    nodes_dependent_on: []
+    output_structure:
+    - description: The type of FDA submission required (e.g., 510(k), PMA, De Novo).
+      key: submission_type
+      type: str
+    - description: List of Pre-Submission communications or inquiries made to the
+        FDA.
+      key: pre_submission_communications
+      type: List[str]
+    - description: List of documents required for the identified submission.
+      key: required_documents
+      type: List[str]
+    - description: Deadline date for completing the submission (ISO format).
+      key: submission_deadline
+      type: str
+    - description: Whether the submission package has been fully prepared.
+      key: is_submission_complete
+      type: bool
     prompt: Determine the specific FDA submissions required for the device, e.g.,
       510(k) or PMA.
   obtain_fda_clearance_or_approval:
@@ -57,6 +119,28 @@ nodes:
     nodes_depended_on:
     - address_fda_comments_and_questions
     nodes_dependent_on: []
+    output_structure:
+    - description: True if the device has received FDA clearance, False otherwise.
+      key: clearance_status
+      type: bool
+    - description: File path or identifier of the received approval letter or certificate.
+      key: approval_letter_path
+      type: str
+    - description: Date when the clearance or approval was granted (ISO format).
+      key: approval_date
+      type: str
+    - description: Number of FDA comments or questions that were resolved before obtaining
+        clearance.
+      key: comments_resolved_count
+      type: int
+    - description: Number of FDA comments or questions still pending after clearance
+        attempt.
+      key: comments_pending_count
+      type: int
+    - description: Whether the clearance document is valid and meets FDA formatting
+        requirements.
+      key: clearance_document_valid
+      type: bool
     prompt: Await FDA clearance or approval and document the outcome of the review
       process.
   perform_competitive_analysis:
@@ -66,8 +150,29 @@ nodes:
     name: perform_competitive_analysis
     nodes_depended_on:
     - research_fda_regulations
-    nodes_dependent_on:
-    - develop_device_documentation
+    nodes_dependent_on: []
+    output_structure:
+    - description: Names of comparable medical devices in the market.
+      key: competitor_names
+      type: List[str]
+    - description: Estimated market share percentage for each competitor.
+      key: market_share_percent
+      type: List[float]
+    - description: Regulatory pathway status for each competitor (e.g., 510(k), PMA,
+        De Novo).
+      key: regulatory_status
+      type: List[str]
+    - description: Key factors where the device differs from competitors (e.g., technology,
+        cost, performance).
+      key: differentiation_factors
+      type: List[str]
+    - description: Summary bullet points of strengths and weaknesses of each competitor.
+      key: strengths_weaknesses
+      type: List[str]
+    - description: Concise summary of the competitive analysis highlighting strategic
+        insights.
+      key: analysis_summary
+      type: str
     prompt: Analyze the competitive landscape of similar medical devices and identify
       areas for differentiation.
   prepare_fda_submission_package:
@@ -78,8 +183,35 @@ nodes:
     nodes_depended_on:
     - identify_required_fda_submissions
     - develop_device_documentation
-    nodes_dependent_on:
-    - submit_fda_application
+    nodes_dependent_on: []
+    output_structure:
+    - description: Unique identifier for the submission package.
+      key: package_id
+      type: str
+    - description: Summary of the device description.
+      key: device_description
+      type: str
+    - description: Technical specifications of the device.
+      key: technical_specifications
+      type: str
+    - description: Summary of clinical data included.
+      key: clinical_data_summary
+      type: str
+    - description: List of required document filenames or titles.
+      key: required_documents
+      type: List[str]
+    - description: Whether the package complies with the FDA submission format.
+      key: format_compliant
+      type: bool
+    - description: Total number of pages in the package.
+      key: total_pages
+      type: int
+    - description: Current status of the package (e.g., ready, pending).
+      key: submission_status
+      type: str
+    - description: Timestamp when the package was assembled.
+      key: submission_timestamp
+      type: str
     prompt: Assemble all necessary documents and information into a submission package
       for the FDA, following the specified format.
   research_fda_regulations:
@@ -89,10 +221,33 @@ nodes:
     name: research_fda_regulations
     nodes_depended_on:
     - clarify_device_type
-    nodes_dependent_on:
-    - develop_device_documentation
-    - identify_required_fda_submissions
-    - perform_competitive_analysis
+    nodes_dependent_on: []
+    output_structure:
+    - description: Concise summary of the most relevant FDA regulations for the device.
+      key: regulation_summary
+      type: str
+    - description: List of guidance document titles or identifiers that apply to the
+        device.
+      key: guidance_documents
+      type: List[str]
+    - description: List of regulation areas (e.g., "510(k)", "PMA", "De Novo") relevant
+        to the device.
+      key: regulation_areas
+      type: List[str]
+    - description: Checklist items that must be verified for regulatory compliance.
+      key: compliance_checklist
+      type: List[str]
+    - description: Version numbers or effective dates of the regulations and guidance
+        documents.
+      key: regulation_versions
+      type: List[str]
+    - description: Preliminary assessment of whether the device meets the identified
+        regulatory requirements.
+      key: is_compliant
+      type: bool
+    - description: List of documents that must be prepared for FDA submission.
+      key: required_documents
+      type: List[str]
     prompt: Research all relevant FDA regulations, guidelines, and requirements for
       the specific device type identified.
   submit_fda_application:
@@ -102,8 +257,28 @@ nodes:
     name: submit_fda_application
     nodes_depended_on:
     - prepare_fda_submission_package
-    nodes_dependent_on:
-    - track_fda_review_progress
+    nodes_dependent_on: []
+    output_structure:
+    - description: Unique identifier for the FDA submission
+      key: submission_id
+      type: str
+    - description: Current status of the submission (e.g., 'Pending', 'Submitted',
+        'Approved')
+      key: submission_status
+      type: str
+    - description: List of document names included in the submission package
+      key: documents_submitted
+      type: List[str]
+    - description: Date the submission was made (ISO 8601 format)
+      key: submission_date
+      type: str
+    - description: Whether the submission was successfully transmitted without errors
+      key: success_flag
+      type: bool
+    - description: Whether a response or request for additional information has been
+        received from the FDA
+      key: review_response_received
+      type: bool
     prompt: Submit the completed FDA application package, including all required documents
       and information, via the specified submission method.
   track_fda_review_progress:
@@ -113,7 +288,27 @@ nodes:
     name: track_fda_review_progress
     nodes_depended_on:
     - submit_fda_application
-    nodes_dependent_on:
-    - address_fda_comments_and_questions
+    nodes_dependent_on: []
+    output_structure:
+    - description: Current status of the FDA review, e.g., 'Pending', 'In Review',
+        'Completed'.
+      key: review_status
+      type: str
+    - description: Estimated number of days remaining until the review is concluded.
+      key: timeline_estimate_days
+      type: int
+    - description: List of any FDA requests for additional information or clarification
+        that are still pending.
+      key: pending_requests
+      type: List[str]
+    - description: ISO 8601 timestamp of the most recent review status update.
+      key: last_update_timestamp
+      type: str
+    - description: Whether all pending FDA requests have been responded to.
+      key: responded_to_requests
+      type: bool
+    - description: Brief summary of the responses submitted to the FDA.
+      key: response_summary
+      type: str
     prompt: Monitor the status of the FDA's review and respond to any requests for
       additional information or clarification.
