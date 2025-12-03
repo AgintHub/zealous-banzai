@@ -1,0 +1,96 @@
+dag_type: plain_text
+description: Creates a comprehensive project plan for submitting a new device to the
+  FDA, including regulatory framework, device documentation, and overall project timeline.
+name: fda_device_submission_plan
+nodes:
+  address_fda_comments_and_questions:
+    agent: false
+    description: Verify that all comments and questions are resolved and that the
+      submission meets the FDA's requirements.
+    name: address_fda_comments_and_questions
+    nodes_depended_on:
+    - track_fda_review_progress
+    nodes_dependent_on: []
+    prompt: Respond to any comments or questions raised by the FDA during the review
+      process, ensuring that all queries are addressed promptly and thoroughly.
+  clarify_device_type:
+    agent: false
+    description: Identify the appropriate device type, e.g., Class I, II, or III,
+      and determine any specific regulations or requirements that apply.
+    name: clarify_device_type
+    nodes_depended_on: []
+    nodes_dependent_on: []
+    prompt: Determine the correct classification for the new device under the FDA's
+      medical device regulations (21 CFR Part 801).
+  develop_device_documentation:
+    agent: false
+    description: Prepare all necessary documents, such as design control files, testing
+      reports, and labeling specifications, to support the device's FDA submission.
+    name: develop_device_documentation
+    nodes_depended_on:
+    - research_fda_regulations
+    nodes_dependent_on: []
+    prompt: Create a comprehensive documentation package for the new device, including
+      design, testing, and labeling information.
+  identify_required_fda_submissions:
+    agent: false
+    description: Identify the necessary submissions, including Pre-Submission communications,
+      and prepare accordingly.
+    name: identify_required_fda_submissions
+    nodes_depended_on:
+    - research_fda_regulations
+    - develop_device_documentation
+    nodes_dependent_on: []
+    prompt: Determine the specific FDA submissions required for the device, e.g.,
+      510(k) or PMA.
+  obtain_fda_clearance_or_approval:
+    agent: false
+    description: Verify that the device has received the necessary clearance or approval,
+      and obtain a copy of the approval letter or certificate.
+    name: obtain_fda_clearance_or_approval
+    nodes_depended_on:
+    - address_fda_comments_and_questions
+    nodes_dependent_on: []
+    prompt: Await FDA clearance or approval and document the outcome of the review
+      process.
+  prepare_fda_submission_package:
+    agent: false
+    description: Ensure that the package includes all required information, e.g.,
+      device description, technical specifications, and clinical data.
+    name: prepare_fda_submission_package
+    nodes_depended_on:
+    - identify_required_fda_submissions
+    - develop_device_documentation
+    nodes_dependent_on: []
+    prompt: Assemble all necessary documents and information into a submission package
+      for the FDA, following the specified format.
+  research_fda_regulations:
+    agent: false
+    description: Review the FDA's Code of Federal Regulations, Guidance Documents,
+      and other relevant resources to ensure compliance.
+    name: research_fda_regulations
+    nodes_depended_on:
+    - clarify_device_type
+    nodes_dependent_on: []
+    prompt: Research all relevant FDA regulations, guidelines, and requirements for
+      the specific device type identified.
+  submit_fda_application:
+    agent: false
+    description: Verify that the submission is complete and accurately reflects the
+      device's information.
+    name: submit_fda_application
+    nodes_depended_on:
+    - prepare_fda_submission_package
+    nodes_dependent_on: []
+    prompt: Submit the completed FDA application package, including all required documents
+      and information, via the specified submission method.
+  track_fda_review_progress:
+    agent: false
+    description: Track the review progress, including any updates or changes to the
+      review timeline.
+    name: track_fda_review_progress
+    nodes_depended_on:
+    - submit_fda_application
+    nodes_dependent_on: []
+    prompt: Monitor the status of the FDA's review and respond to any requests for
+      additional information or clarification.
