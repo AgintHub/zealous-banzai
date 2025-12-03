@@ -1,209 +1,163 @@
 dag_type: plain_text
-description: A detailed workflow for building a hedge fund, covering strategy, legal
-  structure, operations, risk management, and launch planning.
-name: build_hedge_fund
+description: A step‑by‑step workflow that retrieves Microsoft and Apple stock price
+  data, cleans and merges it, computes returns, volatility, Sharpe ratios, correlation,
+  and produces a comparative chart and summary report.
+name: quantitative_comparison_microsoft_apple
 nodes:
-  choose_investment_strategy:
+  calculate_daily_returns_apple:
     agent: false
-    description: Select the primary investment strategy for the hedge fund.
-    name: choose_investment_strategy
+    description: Compute daily returns for AAPL.
+    name: calculate_daily_returns_apple
     nodes_depended_on:
-    - clarify_fund_objectives
-    nodes_dependent_on: []
-    prompt: Choose one primary hedge fund strategy category that best serves the fund
-      objectives (e.g., long/short equity, global macro). Provide a one-sentence rationale.
-  choose_legal_entity_type:
+    - merge_price_data
+    nodes_dependent_on:
+    - compute_correlation
+    - compute_volatility_apple
+    - compute_sharpe_apple
+    prompt: 'From the merged CSV, compute daily log returns for AAPL: ln(Close_AAPL_t
+      / Close_AAPL_{t-1}). Add a column Return_AAPL. Output the updated CSV.'
+  calculate_daily_returns_microsoft:
     agent: false
-    description: Determine the appropriate legal entity structure for the hedge fund.
-    name: choose_legal_entity_type
+    description: Compute daily returns for MSFT.
+    name: calculate_daily_returns_microsoft
     nodes_depended_on:
-    - select_jurisdiction
-    nodes_dependent_on: []
-    prompt: Specify the legal entity structure (e.g., LP, LLC, SICAV) suitable for
-      the chosen jurisdiction. Provide a one-sentence explanation.
-  clarify_fund_objectives:
+    - merge_price_data
+    nodes_dependent_on:
+    - compute_correlation
+    - compute_volatility_microsoft
+    - compute_sharpe_microsoft
+    prompt: 'From the merged CSV, compute daily log returns for MSFT: ln(Close_MSFT_t
+      / Close_MSFT_{t-1}). Add a column Return_MSFT. Output the updated CSV.'
+  clean_and_format_data_apple:
     agent: false
-    description: Define the primary business objectives for the hedge fund.
-    name: clarify_fund_objectives
+    description: Clean and format AAPL data.
+    name: clean_and_format_data_apple
+    nodes_depended_on:
+    - retrieve_price_data_apple
+    nodes_dependent_on:
+    - merge_price_data
+    prompt: Take the CSV from Apple retrieval. Drop rows with missing Close values,
+      convert Date to ISO format, and sort by Date ascending. Output a clean CSV with
+      columns Date and Close_AAPL.
+  clean_and_format_data_microsoft:
+    agent: false
+    description: Clean and format MSFT data.
+    name: clean_and_format_data_microsoft
+    nodes_depended_on:
+    - retrieve_price_data_microsoft
+    nodes_dependent_on:
+    - merge_price_data
+    prompt: Take the CSV from Microsoft retrieval. Drop rows with missing Close values,
+      convert Date to ISO format, and sort by Date ascending. Output a clean CSV with
+      columns Date and Close_MSFT.
+  compute_correlation:
+    agent: false
+    description: Compute correlation of MSFT and AAPL returns.
+    name: compute_correlation
+    nodes_depended_on:
+    - calculate_daily_returns_microsoft
+    - calculate_daily_returns_apple
+    nodes_dependent_on:
+    - generate_comparative_chart
+    prompt: Calculate the Pearson correlation coefficient between Return_MSFT and
+      Return_AAPL over the entire period. Return a single numeric value with a brief
+      explanation.
+  compute_sharpe_apple:
+    agent: false
+    description: Compute AAPL Sharpe ratio.
+    name: compute_sharpe_apple
+    nodes_depended_on:
+    - calculate_daily_returns_apple
+    nodes_dependent_on:
+    - generate_comparative_chart
+    prompt: Assume a risk‑free rate of 1.5% per annum. Compute the annualized Sharpe
+      ratio for AAPL. Return the numeric value and a brief interpretation.
+  compute_sharpe_microsoft:
+    agent: false
+    description: Compute MSFT Sharpe ratio.
+    name: compute_sharpe_microsoft
+    nodes_depended_on:
+    - calculate_daily_returns_microsoft
+    nodes_dependent_on:
+    - generate_comparative_chart
+    prompt: Assume a risk‑free rate of 1.5% per annum. Compute the annualized Sharpe
+      ratio for MSFT (average annual return minus risk‑free rate divided by annualized
+      volatility). Return the numeric value and a brief interpretation.
+  compute_volatility_apple:
+    agent: false
+    description: Compute AAPL volatility.
+    name: compute_volatility_apple
+    nodes_depended_on:
+    - calculate_daily_returns_apple
+    nodes_dependent_on:
+    - generate_comparative_chart
+    prompt: Compute the annualized volatility (standard deviation of daily log returns
+      multiplied by sqrt(252)) for AAPL. Return the numeric value and a short note.
+  compute_volatility_microsoft:
+    agent: false
+    description: Compute MSFT volatility.
+    name: compute_volatility_microsoft
+    nodes_depended_on:
+    - calculate_daily_returns_microsoft
+    nodes_dependent_on:
+    - generate_comparative_chart
+    prompt: Compute the annualized volatility (standard deviation of daily log returns
+      multiplied by sqrt(252)) for MSFT. Return the numeric value and a short note.
+  generate_comparative_chart:
+    agent: false
+    description: Generate a comparative performance chart.
+    name: generate_comparative_chart
+    nodes_depended_on:
+    - compute_correlation
+    - compute_volatility_microsoft
+    - compute_volatility_apple
+    - compute_sharpe_microsoft
+    - compute_sharpe_apple
+    nodes_dependent_on:
+    - produce_summary_report
+    prompt: 'Create a single plot that shows: (1) a side‑by‑side bar chart of annualized
+      volatility for MSFT and AAPL, (2) a side‑by‑side bar chart of Sharpe ratios,
+      and (3) a scatter plot of daily returns with the correlation coefficient labeled.
+      Output the chart in PNG format and a short description of key observations.'
+  merge_price_data:
+    agent: false
+    description: Merge cleaned price data for MSFT and AAPL.
+    name: merge_price_data
+    nodes_depended_on:
+    - clean_and_format_data_microsoft
+    - clean_and_format_data_apple
+    nodes_dependent_on:
+    - calculate_daily_returns_microsoft
+    - calculate_daily_returns_apple
+    prompt: Merge the two cleaned CSVs on the Date column, keeping only dates present
+      in both. Output a CSV with columns Date, Close_MSFT, Close_AAPL.
+  produce_summary_report:
+    agent: false
+    description: Produce final summary report.
+    name: produce_summary_report
+    nodes_depended_on:
+    - generate_comparative_chart
+    nodes_dependent_on: []
+    prompt: Write a concise report summarizing the comparison of MSFT and AAPL. Include
+      the correlation coefficient, volatility figures, Sharpe ratios, and insights
+      from the chart. Format as a Markdown document.
+  retrieve_price_data_apple:
+    agent: false
+    description: Download 5 years of AAPL daily close prices.
+    name: retrieve_price_data_apple
     nodes_depended_on: []
-    nodes_dependent_on: []
-    prompt: State the core business objectives for launching the hedge fund. Provide
-      a concise bullet list covering investment purpose, competitive edge, and long-term
-      vision (max 8 bullets).
-  compile_pitch_deck_outline:
+    nodes_dependent_on:
+    - clean_and_format_data_apple
+    prompt: 'Using a public financial data API, download daily closing price data
+      for Apple (ticker: AAPL) from the most recent 5 years. Return a CSV with columns
+      Date and Close.'
+  retrieve_price_data_microsoft:
     agent: false
-    description: Create a framework for the fundraising presentation.
-    name: compile_pitch_deck_outline
-    nodes_depended_on:
-    - clarify_fund_objectives
-    - define_investor_profile
-    - choose_investment_strategy
-    - set_performance_and_risk_targets
-    - draft_fee_structure
-    - design_risk_management_framework
-    nodes_dependent_on: []
-    prompt: Create a 10-slide outline (slide titles only) for an investor pitch deck
-      incorporating objectives, strategy, team, edge, risk controls, fees, and expected
-      returns.
-  create_hiring_plan:
-    agent: false
-    description: Determine initial staffing requirements.
-    name: create_hiring_plan
-    nodes_depended_on:
-    - draft_operations_workflow
-    nodes_dependent_on: []
-    prompt: List essential full-time positions for launch (max 8), with one-line responsibility
-      each. Align roles with operations workflow gaps.
-  define_asset_universe:
-    agent: false
-    description: Enumerate the tradable assets and instruments.
-    name: define_asset_universe
-    nodes_depended_on:
-    - choose_investment_strategy
-    nodes_dependent_on: []
-    prompt: List the specific asset classes and instruments the chosen strategy will
-      trade (e.g., US large-cap equities, S&P futures). Keep the list to ≤10 items.
-  define_investor_profile:
-    agent: false
-    description: Describe the target investor segment.
-    name: define_investor_profile
-    nodes_depended_on:
-    - clarify_fund_objectives
-    nodes_dependent_on: []
-    prompt: 'Based on the stated fund objectives, specify the ideal target investor
-      profile (e.g., family offices, pensions). List key characteristics: typical
-      ticket size, risk tolerance, liquidity preference, and geographic focus.'
-  define_technology_stack:
-    agent: false
-    description: Specify technology tools supporting operations.
-    name: define_technology_stack
-    nodes_depended_on:
-    - draft_operations_workflow
-    nodes_dependent_on: []
-    prompt: 'Identify required software and infrastructure components for each operations
-      step (e.g., OMS, EMS, risk system). Present as 2-column table: Ops Step | Tech
-      Component.'
-  design_compliance_program:
-    agent: false
-    description: Create compliance policies aligned with regulations and risk.
-    name: design_compliance_program
-    nodes_depended_on:
-    - identify_regulatory_requirements
-    - design_risk_management_framework
-    nodes_dependent_on: []
-    prompt: 'Generate a compliance checklist mapping each regulatory requirement to
-      a specific internal policy or procedure. Table with columns: Requirement | Policy
-      Reference.'
-  design_risk_management_framework:
-    agent: false
-    description: Outline quantitative and qualitative risk controls.
-    name: design_risk_management_framework
-    nodes_depended_on:
-    - set_performance_and_risk_targets
-    nodes_dependent_on: []
-    prompt: 'List core risk controls aligned with the target metrics: position limits,
-      VaR limits, stop-loss rules, liquidity thresholds. Provide 4–6 bullet points.'
-  develop_timeline_and_milestones:
-    agent: false
-    description: Create a phased schedule leading to fund launch.
-    name: develop_timeline_and_milestones
-    nodes_depended_on:
-    - draft_operations_workflow
-    - define_technology_stack
-    - create_hiring_plan
-    - compile_pitch_deck_outline
-    nodes_dependent_on: []
-    prompt: Prepare a launch timeline with monthly milestones over the next 12 months.
-      Include regulatory filing, service provider onboarding, capital raise, tech
-      deployment, and go-live.
-  draft_fee_structure:
-    agent: false
-    description: Set management and performance fee levels.
-    name: draft_fee_structure
-    nodes_depended_on:
-    - set_performance_and_risk_targets
-    - estimate_setup_and_operating_costs
-    nodes_dependent_on: []
-    prompt: Propose management and performance fee percentages that balance cost recovery
-      and competitiveness. Include incentive hurdle if relevant. Summarize in ≤3 sentences.
-  draft_operations_workflow:
-    agent: false
-    description: Map core trade and post-trade operational steps.
-    name: draft_operations_workflow
-    nodes_depended_on:
-    - define_asset_universe
-    - list_service_providers
-    - design_risk_management_framework
-    nodes_dependent_on: []
-    prompt: 'Sketch the daily trade lifecycle: idea generation → order entry → execution
-      → confirmation → settlement → reconciliation. List each step with primary responsible
-      party (internal or provider).'
-  estimate_setup_and_operating_costs:
-    agent: false
-    description: Prepare a rough estimate of setup and operating costs.
-    name: estimate_setup_and_operating_costs
-    nodes_depended_on:
-    - list_service_providers
-    nodes_dependent_on: []
-    prompt: 'Provide a simple annual cost estimate (in USD) for each listed service
-      provider plus overhead (office, tech). Present as two columns: Cost Item | Estimated
-      USD.'
-  identify_regulatory_requirements:
-    agent: false
-    description: Outline key regulatory filings and registrations.
-    name: identify_regulatory_requirements
-    nodes_depended_on:
-    - choose_legal_entity_type
-    nodes_dependent_on: []
-    prompt: List primary registrations or filings required for the selected entity
-      and jurisdiction (e.g., SEC Form ADV). Provide citation to governing body names
-      only.
-  list_service_providers:
-    agent: false
-    description: Identify required third-party service providers.
-    name: list_service_providers
-    nodes_depended_on:
-    - choose_legal_entity_type
-    nodes_dependent_on: []
-    prompt: 'List the necessary external service providers: prime broker, fund administrator,
-      auditor, legal counsel, compliance consultant, and custodian.'
-  outline_governance_structure:
-    agent: false
-    description: Define the internal governance roles and responsibilities.
-    name: outline_governance_structure
-    nodes_depended_on:
-    - choose_legal_entity_type
-    nodes_dependent_on: []
-    prompt: Draft a simple governance chart outlining roles such as GP, investment
-      manager, and board (if applicable). Limit to 5 roles with one-line duties each.
-  produce_final_fund_plan_summary:
-    agent: false
-    description: Generate an all-in summary of the hedge fund plan.
-    name: produce_final_fund_plan_summary
-    nodes_depended_on:
-    - design_compliance_program
-    - compile_pitch_deck_outline
-    - develop_timeline_and_milestones
-    nodes_dependent_on: []
-    prompt: Synthesize prior outputs into a concise executive summary (≤400 words)
-      covering strategy, structure, risk, ops, fees, timeline. Use bullet points or
-      short paragraphs.
-  select_jurisdiction:
-    agent: false
-    description: Choose the optimal jurisdiction for the hedge fund.
-    name: select_jurisdiction
-    nodes_depended_on:
-    - clarify_fund_objectives
-    nodes_dependent_on: []
-    prompt: Select the optimal fund domicile (e.g., Cayman, Delaware, Luxembourg)
-      based on the fund objectives. Provide 2 pros and 2 cons for the chosen jurisdiction.
-  set_performance_and_risk_targets:
-    agent: false
-    description: Quantify return and risk goals.
-    name: set_performance_and_risk_targets
-    nodes_depended_on:
-    - choose_investment_strategy
-    nodes_dependent_on: []
-    prompt: Define numerical annual targets for gross return, volatility (standard
-      deviation), Sharpe ratio, and maximum drawdown consistent with the chosen strategy.
-      Present as a 4-row table.
+    description: Download 5 years of MSFT daily close prices.
+    name: retrieve_price_data_microsoft
+    nodes_depended_on: []
+    nodes_dependent_on:
+    - clean_and_format_data_microsoft
+    prompt: 'Using a public financial data API, download daily closing price data
+      for Microsoft (ticker: MSFT) from the most recent 5 years. Return a CSV with
+      columns Date and Close.'
