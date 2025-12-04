@@ -1,11 +1,11 @@
 dag_type: plain_text
-description: A workflow to generate adaptive multiple-choice math questions for elementary
-  school students, adjusting difficulty based on performance.
-name: create_adaptive_math_questions
+description: Create a bank of elementary school math questions across five difficulty
+  levels.
+name: generate_math_question_bank
 nodes:
   compile_question_bank:
     agent: false
-    description: Compile all generated questions into a single bank.
+    description: Assemble the complete question bank.
     name: compile_question_bank
     nodes_depended_on:
     - generate_level_1_questions
@@ -14,92 +14,59 @@ nodes:
     - generate_level_4_questions
     - generate_level_5_questions
     nodes_dependent_on: []
-    prompt: Combine all the generated questions from different levels into a single
-      question bank, maintaining their respective levels.
+    prompt: Combine all generated questions from the five levels into a single question
+      bank, preserving each question’s level designation.
   define_math_topic_areas:
     agent: false
-    description: Identify the elementary school math topic areas to be covered.
+    description: Identify the core math topics to be covered in the questions.
     name: define_math_topic_areas
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: List 5 key elementary school math topic areas (e.g., addition, subtraction,
+    prompt: List five key elementary school math topic areas (e.g., addition, subtraction,
       multiplication, division, fractions).
-  determine_next_question_level:
-    agent: false
-    description: Determine the next question level based on student performance.
-    name: determine_next_question_level
-    nodes_depended_on:
-    - evaluate_student_response
-    nodes_dependent_on: []
-    prompt: Based on the student's previous response, decide whether to increase,
-      decrease, or maintain the current question level. Provide the next level.
-  evaluate_student_response:
-    agent: false
-    description: Evaluate the student's response to the current question.
-    name: evaluate_student_response
-    nodes_depended_on:
-    - generate_level_1_questions
-    - generate_level_2_questions
-    - generate_level_3_questions
-    - generate_level_4_questions
-    - generate_level_5_questions
-    nodes_dependent_on:
-    - determine_next_question_level
-    prompt: Assess whether the student's answer is correct or not. If correct, proceed
-      to the next higher level if not already at level 5. If incorrect, move to the
-      previous level if not already at level 1.
   generate_level_1_questions:
     agent: false
-    description: Create multiple-choice questions for level 1.
+    description: Create level 1 questions.
     name: generate_level_1_questions
     nodes_depended_on:
     - define_math_topic_areas
-    nodes_dependent_on:
-    - determine_next_question_level
-    prompt: Generate 5 multiple-choice questions with 1 correct and 3 incorrect answers
-      for level 1, covering the identified math topic areas. Ensure questions are
-      appropriate for elementary school students.
+    nodes_dependent_on: []
+    prompt: Generate 5 multiple‑choice questions for level 1 with 1 correct and 3
+      incorrect options, covering the identified topics and suitable for elementary
+      students.
   generate_level_2_questions:
     agent: false
-    description: Create multiple-choice questions for level 2.
+    description: Create level 2 questions.
     name: generate_level_2_questions
     nodes_depended_on:
     - define_math_topic_areas
-    nodes_dependent_on:
-    - determine_next_question_level
-    prompt: Generate 5 multiple-choice questions with 1 correct and 3 incorrect answers
-      for level 2, covering the identified math topic areas. Ensure questions are
-      slightly harder than level 1.
+    nodes_dependent_on: []
+    prompt: Generate 5 multiple‑choice questions for level 2 with 1 correct and 3
+      incorrect options, covering the identified topics and slightly harder than level 1.
   generate_level_3_questions:
     agent: false
-    description: Create multiple-choice questions for level 3.
+    description: Create level 3 questions.
     name: generate_level_3_questions
     nodes_depended_on:
     - define_math_topic_areas
-    nodes_dependent_on:
-    - determine_next_question_level
-    prompt: Generate 5 multiple-choice questions with 1 correct and 3 incorrect answers
-      for level 3, covering the identified math topic areas. Ensure questions are
-      harder than level 2.
+    nodes_dependent_on: []
+    prompt: Generate 5 multiple‑choice questions for level 3 with 1 correct and 3
+      incorrect options, covering the identified topics and harder than level 2.
   generate_level_4_questions:
     agent: false
-    description: Create multiple-choice questions for level 4.
+    description: Create level 4 questions.
     name: generate_level_4_questions
     nodes_depended_on:
     - define_math_topic_areas
-    nodes_dependent_on:
-    - determine_next_question_level
-    prompt: Generate 5 multiple-choice questions with 1 correct and 3 incorrect answers
-      for level 4, covering the identified math topic areas. Ensure questions are
-      harder than level 3.
+    nodes_dependent_on: []
+    prompt: Generate 5 multiple‑choice questions for level 4 with 1 correct and 3
+      incorrect options, covering the identified topics and harder than level 3.
   generate_level_5_questions:
     agent: false
-    description: Create multiple-choice questions for level 5.
+    description: Create level 5 questions.
     name: generate_level_5_questions
     nodes_depended_on:
     - define_math_topic_areas
-    nodes_dependent_on:
-    - determine_next_question_level
-    prompt: Generate 5 multiple-choice questions with 1 correct and 3 incorrect answers
-      for level 5, covering the identified math topic areas. Ensure questions are
-      the hardest among all levels.
+    nodes_dependent_on: []
+    prompt: Generate 5 multiple‑choice questions for level 5 with 1 correct and 3
+      incorrect options, covering the identified topics and hardest among all levels.
