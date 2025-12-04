@@ -1,23 +1,37 @@
 dag_type: plain_text
-description: Generates a sequence of up‑to‑five multiple‑choice math questions for
-  elementary students. Each question has one correct answer and three plausible wrong
-  answers. After each answer the flow decides the next difficulty level (harder if
-  correct, easier if incorrect) and presents the next question. All question generation
-  for the five difficulty levels is done in parallel.
+description: Generated workflow from UI.
 name: adaptive_elementary_math_mcq_flow
 nodes:
   decide_lvl2:
     agent: false
-    description: Select the difficulty level for the second question based on the
-      result of eval_q1.
+    description: Adaptive difficulty selector for the second assessment item. It reads
+      the correctness flag (`is_correct`) produced by the `eval_q1` node and adjusts
+      the difficulty tier accordingly, ensuring the resulting level stays within the
+      allowed bounds of 1 to 5. The baseline difficulty for the first item is level 1;
+      a correct answer raises the level by one, while an incorrect answer lowers it
+      by one.
     name: decide_lvl2
     nodes_depended_on:
     - eval_q1
     nodes_dependent_on: []
-    prompt: Read the "is_correct" flag from eval_q1. If true, set next_level = current_level
-      + 1 (max 5). If false, set next_level = current_level - 1 (min 1). The current
-      level for the first question is 1. Output a JSON object with field "next_level"
-      containing the integer level (1‑5).
+    prompt: '1. Retrieve the boolean field `is_correct` from the output of the `eval_q1`
+      node.
+
+      2. Let `current_level` be the difficulty tier of the first question (default = 1).
+
+      3. If `is_correct` is **true**, compute `next_level = min(current_level + 1,
+      5)`.
+
+      4. If `is_correct` is **false**, compute `next_level = max(current_level - 1,
+      1)`.
+
+      5. Emit a JSON object exactly as follows:
+
+      ```json
+
+      { "next_level": <integer between 1 and 5> }
+
+      ```'
   decide_lvl3:
     agent: false
     description: Select the difficulty level for the third question based on eval_q2.
@@ -55,16 +69,43 @@ nodes:
       a JSON object with "next_level" set to the new integer.
   eval_q1:
     agent: false
-    description: Evaluate the student's answer for the first question and output a
-      correctness flag.
+    description: Validates the learner's response to the first level‑1 multiple‑choice
+      math question. It cross‑references the student's selected option (A‑D) with
+      the correct option derived from the `present_q1_lvl1` node and emits a single
+      Boolean flag indicating correctness.
     name: eval_q1
     nodes_depended_on:
     - present_q1_lvl1
     nodes_dependent_on: []
-    prompt: 'Given the student''s selected option (A, B, C, or D) and the correct
-      option identified in the prompt from present_q1_lvl1, output a JSON object with
-      a single field "is_correct": true if the student''s choice matches the correct
-      option, otherwise false.'
+    prompt: 'You receive three pieces of information:
+
+      1. **question** – the full text of the math problem presented to the student
+      (including the four answer choices A‑D).
+
+      2. **student_answer** – the option letter (A, B, C, or D) chosen by the student.
+
+      3. **correct_answer** – the option letter (A, B, C, or D) that is the true answer,
+      as identified by the `present_q1_lvl1` node.
+
+
+      Your task is to determine whether the student''s choice matches the correct
+      answer. Respond **only** with a JSON object containing a single field:
+
+      ```json
+
+      {"is_correct": true}
+
+      ```
+
+      if the answers match, or
+
+      ```json
+
+      {"is_correct": false}
+
+      ```
+
+      if they do not. Do not include any additional commentary, explanations, or fields.'
   eval_q2:
     agent: false
     description: Evaluate the student's answer for the second question and output
@@ -132,48 +173,99 @@ nodes:
     name: gen_q_lvl1
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: 'Generate a single multiple‑choice math question for a beginner (level 1).
-      Provide the question text, one correct answer, and three plausible incorrect
-      answers. Return a JSON object with fields: "question", "correct_answer", "wrong_answers"
-      (array of three strings).'
+    prompt: 'What is 2 + 3?
+
+      {"question": "What is 2 + 3?", "correct_answer": "5", "wrong_answers": ["6",
+      "4", "1"]} '
   gen_q_lvl2:
     agent: false
-    description: Create one multiple‑choice question for a slightly harder beginner
-      (level 2).
+    description: Generates a single, well‑crafted multiple‑choice mathematics question
+      suitable for a "Level 2" learner – a slightly harder beginner who has mastered
+      basic addition/subtraction and is ready for introductory multiplication, division,
+      simple fractions, and elementary algebra. The output is a JSON object containing
+      the full question text, the correct answer, and three carefully chosen distractors
+      that are plausible yet distinctly incorrect, supporting adaptive learning pathways
+      and immediate automated feedback.
     name: gen_q_lvl2
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: 'Generate a single multiple‑choice math question for level 2 difficulty.
-      Include the question, one correct answer, and three plausible wrong answers.
-      Return a JSON object with fields: "question", "correct_answer", "wrong_answers".'
+    prompt: "Create a Level 2 multiple‑choice math question. Use the following exemplar\
+      \ as the template for the style and difficulty of the question you must generate:\n\
+      \n**Example question:** \"What is 8 × 7?\"\n\nYour task is to produce a new\
+      \ question of comparable difficulty (e.g., involving single‑digit multiplication,\
+      \ simple division, basic fractions, or a one‑step algebraic expression). Provide\
+      \ four answer options: one correct answer and three plausible wrong answers\
+      \ that reflect common misconceptions at this stage. Return the result as a JSON\
+      \ object with the exact fields:\n\n```json\n{\n  \"question\": \"<your generated\
+      \ question>\",\n  \"correct_answer\": \"<the correct option>\",\n  \"wrong_answers\"\
+      : [\"<distractor 1>\", \"<distractor 2>\", \"<distractor 3>\"]\n}\n```"
   gen_q_lvl3:
     agent: false
-    description: Create one multiple‑choice question for a moderate difficulty (level 3).
+    description: Generates a single, high‑quality multiple‑choice math problem at
+      moderate difficulty (Level 3). The output includes the question, one correct
+      answer, and three credible wrong answers, all encapsulated in a structured JSON
+      object ready for downstream consumption.
     name: gen_q_lvl3
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: 'Generate a single multiple‑choice math question for level 3 difficulty.
-      Include the question, one correct answer, and three plausible wrong answers.
-      Return a JSON object with fields: "question", "correct_answer", "wrong_answers".'
+    prompt: "Create a single, well‑balanced multiple‑choice mathematics question that\
+      \ exemplifies moderate difficulty (Level 3). The problem should require a single‑step\
+      \ algebraic manipulation (e.g., solving for x, simplifying a rational expression,\
+      \ or applying the Pythagorean theorem). Include:\n1. The full question text.\n\
+      2. The correct answer.\n3. Three plausible but incorrect distractors.\nReturn\
+      \ the result as a JSON object with the exact fields: \"question\", \"correct_answer\"\
+      , and \"wrong_answers\" (an array of three strings). Ensure the language is\
+      \ clear, the numeric values are reasonable for Level 3 learners, and the distractors\
+      \ are realistic misconceptions.\n\nExample output format (the content must be\
+      \ generated, not copied):\n```json\n{\n  \"question\": \"...\",\n  \"correct_answer\"\
+      : \"...\",\n  \"wrong_answers\": [\"...\", \"...\", \"...\"]\n}\n```"
   gen_q_lvl4:
     agent: false
-    description: Create one multiple‑choice question for a high‑school‑approaching
-      difficulty (level 4).
+    description: Generates one high‑school‑prep (level 4) multiple‑choice math question,
+      delivering the problem statement, the correct solution, and three carefully
+      crafted incorrect options, all encapsulated in a structured JSON payload ready
+      for downstream consumption.
     name: gen_q_lvl4
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: 'Generate a single multiple‑choice math question for level 4 difficulty.
-      Include the question, one correct answer, and three plausible wrong answers.
-      Return a JSON object with fields: "question", "correct_answer", "wrong_answers".'
+    prompt: 'Generate a single, original multiple‑choice mathematics problem suitable
+      for a student on the cusp of high school (difficulty level 4). The question
+      should target a core pre‑high‑school topic such as linear equations, quadratic
+      functions, geometry, or elementary probability, and be phrased clearly and concisely.
+
+
+      Provide:
+
+      1. **question** – the full problem statement.
+
+      2. **correct_answer** – the exact solution.
+
+      3. **wrong_answers** – an array of three plausible distractors that are numerically
+      close or conceptually tempting.
+
+
+      Return the output as a well‑formed JSON object with the keys "question", "correct_answer",
+      and "wrong_answers" (the latter containing exactly three strings). Do not include
+      any explanatory text outside the JSON.
+
+      '
   gen_q_lvl5:
     agent: false
-    description: Create one multiple‑choice question for the hardest elementary level
-      (level 5).
+    description: Generate one multiple-choice question for the hardest elementary
+      level (level 5), focusing on multi-step word problems involving multiplication,
+      division, and basic financial calculations relevant to real-world scenarios.
     name: gen_q_lvl5
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: 'Generate a single multiple‑choice math question for level 5 difficulty.
-      Include the question, one correct answer, and three plausible wrong answers.
+    prompt: 'Question: A farmer has 15 cows. Each cow produces 8 liters of milk per
+      day. If the farmer sells the milk at $1.50 per liter, how much money will the
+      farmer make in 5 days?
+
+      Correct Answer: $900
+
+      Wrong Answers: $600, $1800, $450
+
+
       Return a JSON object with fields: "question", "correct_answer", "wrong_answers".'
   init_flow:
     agent: false
@@ -185,252 +277,625 @@ nodes:
       the start of the workflow.
   present_q1_lvl1:
     agent: false
-    description: Present the level‑1 question generated for step 1 to the student.
+    description: Presents the level-1 math question generated in the previous step
+      to the student in a multiple-choice format. The question and answer options
+      are derived from the JSON output of the 'gen_q_lvl1' node. The correct answer
+      is randomly positioned among the distractors, and the system internally notes
+      the correct option for subsequent evaluation, without revealing it to the student.
     name: present_q1_lvl1
     nodes_depended_on:
     - init_flow
     - gen_q_lvl1
     nodes_dependent_on: []
-    prompt: 'Take the JSON output from gen_q_lvl1 and format it as a multiple‑choice
-      prompt:
+    prompt: 'Here is your first question:
 
 
       Question: <question>
 
-      A) <option1>
+      A) <option_A>
 
-      B) <option2>
+      B) <option_B>
 
-      C) <option3>
+      C) <option_C>
 
-      D) <option4>
+      D) <option_D>
 
 
-      Place the correct answer randomly among the four options. Output the formatted
-      prompt and indicate which option (A‑D) is correct (but do not reveal it to the
-      student).'
+      To answer, select the letter corresponding to your choice.
+
+
+      (Correct answer will be internally tracked as <correct_option>, but this is
+      not revealed to the student.)'
   present_q2_lvl1:
     agent: false
-    description: Present a level‑1 question for step 2 (used if decide_lvl2 chose
-      level 1).
+    description: Displays a level‑1 elementary‑math multiple‑choice question for the
+      second step of the workflow when the difficulty selector (`decide_lvl2`) determines
+      that the next question should remain at level 1. The node consumes the JSON
+      payload produced by `gen_q_lvl1`, formats it into a ready‑to‑present quiz prompt,
+      and outputs the prompt together with a hidden label indicating which option
+      is correct.
     name: present_q2_lvl1
     nodes_depended_on:
     - decide_lvl2
     - gen_q_lvl1
     nodes_dependent_on: []
-    prompt: If decide_lvl2's next_level equals 1, take the JSON from gen_q_lvl1 and
-      format it as a multiple‑choice prompt exactly as in present_q1_lvl1. Output
-      the formatted prompt and the hidden correct option label.
+    prompt: "If the field `next_level` from the `decide_lvl2` node equals **1**, perform\
+      \ the following actions:\n1. Retrieve the JSON object emitted by `gen_q_lvl1`.\
+      \ It contains:\n   - `question`: the text of the math question (e.g., \"What\
+      \ is 2 + 3?\")\n   - `correct_answer`: the correct answer string (e.g., \"5\"\
+      )\n   - `wrong_answers`: an array of three plausible distractors (e.g., [\"\
+      4\", \"6\", \"7\"]).\n2. Randomly assign the four answer choices to the labels\
+      \ **A**, **B**, **C**, **D** while preserving the content order defined below\
+      \ (you may shuffle if desired, but ensure the hidden label matches the final\
+      \ position of the correct answer).\n3. Construct the multiple‑choice prompt\
+      \ exactly in the style used by `present_q1_lvl1`. For example, with the sample\
+      \ data above the formatted prompt should appear as:\n```\n**Question:** What\
+      \ is 2 + 3?\nA) 4\nB) 6\nC) 7\nD) 5\n```\n4. Output **two** top‑level fields\
+      \ in JSON:\n   - `prompt`: the fully formatted markdown string shown above (including\
+      \ the question and the four labelled options).\n   - `correct_option`: the label\
+      \ (A‑D) that corresponds to the correct answer (e.g., \"D\" for the example).\n\
+      The output must be a valid JSON object with exactly these two fields.\n\n*Note:*\
+      \ The actual question text and answer choices will vary according to the real\
+      \ output of `gen_q_lvl1`; the example is provided solely for illustration."
   present_q2_lvl2:
     agent: false
-    description: Present a level‑2 question for step 2 (used if decide_lvl2 chose
-      level 2).
+    description: Formats the level‑2 math question produced by **gen_q_lvl2** for
+      presentation to the learner. When **decide_lvl2** determines that the next difficulty
+      level is 2, this node assembles the question text and four answer choices (A‑D),
+      randomising the position of the correct answer, and emits both the user‑facing
+      prompt and a hidden label indicating which option (A‑D) is correct for downstream
+      grading.
     name: present_q2_lvl2
     nodes_depended_on:
     - decide_lvl2
     - gen_q_lvl2
     nodes_dependent_on: []
-    prompt: If decide_lvl2's next_level equals 2, format the question from gen_q_lvl2
-      as a multiple‑choice prompt (A‑D) with the correct answer randomly placed. Output
-      the prompt and the hidden correct option label.
+    prompt: "If the JSON output from **decide_lvl2** contains `next_level` equal to\
+      \ **2**, perform the following steps:\n\n1. Retrieve the JSON object from **gen_q_lvl2**,\
+      \ which includes the fields:\n   - `question` (the math problem statement)\n\
+      \   - `correct_answer` (the accurate solution)\n   - `wrong_answers` (an array\
+      \ of three plausible distractors).\n2. Construct an array `all_answers` that\
+      \ contains the `correct_answer` and the three `wrong_answers`.\n3. Randomly\
+      \ shuffle `all_answers` and assign them to the labels **A**, **B**, **C**, **D**.\n\
+      4. Determine which label now corresponds to the original `correct_answer`; store\
+      \ this label as `correct_label`.\n5. Output **two** sections separated by a\
+      \ blank line:\n   - **User Prompt**: the `question` followed by the four choices\
+      \ formatted as:\n     ```\n     {question}\n     A) {answer_A}\n     B) {answer_B}\n\
+      \     C) {answer_C}\n     D) {answer_D}\n     ```\n   - **Hidden Metadata**:\
+      \ a JSON object on its own line containing the correct option label, e.g. `{\
+      \ \"correct_label\": \"C\" }`.\n\nThe actual math question will be whatever\
+      \ text is supplied by **gen_q_lvl2**; no placeholder text is used. The shuffling\
+      \ ensures the correct answer appears at a random position each time the workflow\
+      \ runs."
   present_q2_lvl3:
     agent: false
-    description: Present a level‑3 question for step 2 (used if decide_lvl2 chose
-      level 3).
+    description: When the adaptive difficulty controller (decide_lvl2) selects level 3
+      for the second question, this node consumes the question payload generated by
+      gen_q_lvl3 and transforms it into a polished, four‑option multiple‑choice prompt
+      (options A‑D). The correct answer is randomly placed among the options, and
+      the label of the correct option is emitted as hidden metadata for downstream
+      evaluation. This ensures a seamless, level‑appropriate user experience while
+      preserving the ability to automatically verify the response.
     name: present_q2_lvl3
     nodes_depended_on:
     - decide_lvl2
     - gen_q_lvl3
     nodes_dependent_on: []
-    prompt: If decide_lvl2's next_level equals 3, format the question from gen_q_lvl3
-      as a multiple‑choice prompt (A‑D) with the correct answer randomly placed. Output
-      the prompt and the hidden correct option label.
+    prompt: "## Presentation Logic for a Level‑3 Question\n1. **Check Difficulty**:\
+      \ Verify that `decide_lvl2.next_level` equals `3`. If not, produce no output.\n\
+      2. **Retrieve Question Data**: From the output of `gen_q_lvl3` obtain the fields:\n\
+      \   - `question` (string)\n   - `correct_answer` (string or number)\n   - `wrong_answers`\
+      \ (array of three strings/numbers)\n3. **Shuffle Answers**: Combine the `correct_answer`\
+      \ with the three `wrong_answers` and randomly shuffle the four items.\n4. **Assign\
+      \ Labels**: Map the shuffled answers to option labels `A`, `B`, `C`, and `D`\
+      \ in order.\n5. **Construct Prompt**: Build a user‑facing prompt in the following\
+      \ format:\n```\n<question>\nA) <answer_A>\nB) <answer_B>\nC) <answer_C>\nD)\
+      \ <answer_D>\n```\n   *Example* (for illustration only; the actual content comes\
+      \ from `gen_q_lvl3`):\n```\nWhat is the sum of the interior angles of a regular\
+      \ hexagon?\nA) 720°\nB) 540°\nC) 360°\nD) 180°\n```\n6. **Output JSON**: Return\
+      \ a JSON object with two keys:\n   - `presented_prompt` (string): the formatted\
+      \ multiple‑choice prompt.\n   - `correct_option` (string): the label (`A`, `B`,\
+      \ `C`, or `D`) that corresponds to the correct answer after shuffling.\n\n**Important**:\
+      \ The `correct_option` must be hidden from the user but available to downstream\
+      \ nodes for answer validation.\n\n**Implementation Hint**: Use a deterministic\
+      \ random seed derived from the current session ID to ensure reproducibility\
+      \ if needed.\n\nReturn only the JSON object described above."
   present_q2_lvl4:
     agent: false
-    description: Present a level‑4 question for step 2 (used if decide_lvl2 chose
-      level 4).
+    description: Presents a level-4 (high school approaching difficulty) question
+      for step 2. This node is triggered if decide_lvl2 determines that the next question
+      should be level 4, based on the student's performance on question 1. It takes
+      the generated question and answers from gen_q_lvl4 and formats them into a multiple-choice
+      question with options A-D, ensuring the correct answer is randomly assigned
+      to one of these options. The prompt and the correct answer's letter are then
+      output.
     name: present_q2_lvl4
     nodes_depended_on:
     - decide_lvl2
     - gen_q_lvl4
     nodes_dependent_on: []
-    prompt: If decide_lvl2's next_level equals 4, format the question from gen_q_lvl4
-      as a multiple‑choice prompt (A‑D) with the correct answer randomly placed. Output
-      the prompt and the hidden correct option label.
+    prompt: 'If decide_lvl2''s next_level equals 4, format the question from gen_q_lvl4
+      as a multiple‑choice prompt (A‑D) with the correct answer randomly placed. For
+      example, if the question is ''What is the derivative of f(x) = x^3?'', the correct
+      answer is ''3x^2'', and the incorrect answers are ''x^2'', ''2x^3'', and ''4x'',
+      the prompt should look like: ''What is the derivative of f(x) = x^3?\nA) x^2\nB)
+      3x^2\nC) 2x^3\nD) 4x''. Randomly assign the correct answer to one of the options
+      (A, B, C, or D). Output the complete prompt and the hidden correct option label
+      (e.g., ''B'').'
   present_q2_lvl5:
     agent: false
-    description: Present a level‑5 question for step 2 (used if decide_lvl2 chose
-      level 5).
+    description: Presents a level 5 math question as a multiple-choice prompt for
+      the second question in the sequence, formatted with options A-D, ensuring the
+      correct answer is randomly positioned within these choices. Relies on the output
+      of `decide_lvl2` to confirm the level is 5 and uses the question generated by
+      `gen_q_lvl5`.
     name: present_q2_lvl5
     nodes_depended_on:
     - decide_lvl2
     - gen_q_lvl5
     nodes_dependent_on: []
-    prompt: If decide_lvl2's next_level equals 5, format the question from gen_q_lvl5
-      as a multiple‑choice prompt (A‑D) with the correct answer randomly placed. Output
-      the prompt and the hidden correct option label.
+    prompt: 'Here''s the level 5, multiple-choice question for step 2. \n\nWhat is
+      the value of x in the following equation: 5(x + 3) = 35? \n\nA) 2 \nB) 4 \nC)
+      7 \nD) 10 \n\nCorrect Answer: A'
   present_q3_lvl1:
     agent: false
-    description: Present a level‑1 question for step 3 (if decide_lvl3 chose level 1).
+    description: Formats and presents a level‑1 elementary‑math multiple‑choice question
+      for the third interaction step, but only when the difficulty‑selection node
+      (`decide_lvl3`) has determined that the next level is 1. The node pulls the
+      question payload produced by `gen_q_lvl1`, randomises the ordering of the correct
+      answer and the three distractors, labels the four options as A‑D, and returns
+      a ready‑to‑display prompt together with the hidden label of the correct option
+      for downstream evaluation.
     name: present_q3_lvl1
     nodes_depended_on:
     - decide_lvl3
     - gen_q_lvl1
     nodes_dependent_on: []
-    prompt: If decide_lvl3's next_level equals 1, format gen_q_lvl1 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If the JSON field `decide_lvl3.next_level` equals 1, perform the following\
+      \ actions:\n1. Retrieve the JSON object from `gen_q_lvl1` which contains:\n\
+      \   - `question` (string)\n   - `correct_answer` (string)\n   - `wrong_answers`\
+      \ (array of three strings)\n2. Build an array `all_answers` consisting of the\
+      \ `correct_answer` and the three `wrong_answers`.\n3. Randomly shuffle `all_answers`.\n\
+      4. Assign the shuffled answers to labels A, B, C, and D in order.\n5. Determine\
+      \ which label corresponds to the original `correct_answer` and store it as `correct_label`.\n\
+      6. Construct a formatted prompt string:\n```\n{question}\nA) {answer_A}\nB)\
+      \ {answer_B}\nC) {answer_C}\nD) {answer_D}\n```\n7. Output a JSON object with\
+      \ two fields:\n   - `prompt`: the formatted multiple‑choice string from step 6\n\
+      \   - `correct_label`: the label (A‑D) that holds the correct answer (kept hidden\
+      \ for scoring).\nIf `decide_lvl3.next_level` is not 1, output an empty JSON\
+      \ object `{}`."
   present_q3_lvl2:
     agent: false
-    description: Present a level‑2 question for step 3 (if decide_lvl3 chose level 2).
+    description: Generates and presents a concrete level‑2 multiple‑choice math question
+      for step 3 when the adaptive difficulty selector (decide_lvl3) chooses level 2.
+      It consumes the JSON output of **gen_q_lvl2** (question, correct answer, and
+      three distractors), randomises the order of the four answer choices, formats
+      them as an A‑D markdown prompt, and returns both the formatted prompt and a
+      hidden token indicating which option (A‑D) is the correct one. This ensures
+      downstream nodes receive a ready‑to‑display question while preserving the answer
+      key for evaluation.
     name: present_q3_lvl2
     nodes_depended_on:
     - decide_lvl3
     - gen_q_lvl2
     nodes_dependent_on: []
-    prompt: If decide_lvl3's next_level equals 2, format gen_q_lvl2 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If the field `next_level` from the node **decide_lvl3** equals **2**,\
+      \ perform the following steps:\n\n1. Retrieve the JSON object produced by **gen_q_lvl2**.\
+      \ It contains:\n   - `question` (string)\n   - `correct_answer` (string)\n \
+      \  - `wrong_answers` (array of three strings)\n2. Build an array `all_answers`\
+      \ containing the `correct_answer` and the three `wrong_answers`.\n3. Randomly\
+      \ shuffle `all_answers` and assign them to the labels **A**, **B**, **C**, **D**.\n\
+      4. Identify which label now holds the original `correct_answer` and store this\
+      \ label as `correct_option`.\n5. Construct a markdown formatted prompt:\n  \
+      \ ```markdown\n   **Question:** {question}\n   \n   A) {answer_A}\n   B) {answer_B}\n\
+      \   C) {answer_C}\n   D) {answer_D}\n   ```\n6. Output a JSON object with two\
+      \ fields:\n   - `prompt`: the markdown string from step 5\n   - `correct_option`:\
+      \ the label (A‑D) that corresponds to the correct answer.\n\nIf `next_level`\
+      \ is not **2**, return an empty object or a message indicating that no level‑2\
+      \ question is required for this step."
   present_q3_lvl3:
     agent: false
-    description: Present a level‑3 question for step 3 (if decide_lvl3 chose level 3).
+    description: 'Presents the level-3 question generated by gen_q_lvl3 if decide_lvl3
+      determines the next level should be 3: Formats the question into a standard
+      multiple-choice format (A-D) and randomly assigns the correct answer to one
+      of the options. Stores the correct answer''s label for later evaluation.'
     name: present_q3_lvl3
     nodes_depended_on:
     - decide_lvl3
     - gen_q_lvl3
     nodes_dependent_on: []
-    prompt: If decide_lvl3's next_level equals 3, format gen_q_lvl3 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: 'If decide_lvl3''s next_level equals 3, then format the level 3 math question
+      from gen_q_lvl3 into a multiple-choice format with options A, B, C, and D. For
+      example, the question could be: ''What is the area of a circle with a radius
+      of 5?''. Ensure one of the options A-D is the correct answer and that the other
+      three are plausible distractors. Randomly assign the correct answer to one of
+      the option labels (A, B, C, or D). Output the formatted multiple-choice question
+      and the hidden label (A, B, C, or D) of the correct option in JSON format, for
+      example: {''question'': ''What is the area of a circle with a radius of 5?'',
+      ''options'': {''A'': ''78.5'', ''B'': ''31.4'', ''C'': ''15.7'', ''D'': ''100''},
+      ''correct_answer_label'': ''A''}.'
   present_q3_lvl4:
     agent: false
-    description: Present a level‑4 question for step 3 (if decide_lvl3 chose level 4).
+    description: When the adaptive difficulty engine (decide_lvl3) selects level 4
+      for the third question, this node consumes the generated level‑4 question (gen_q_lvl4)
+      and renders it as a polished, ready‑to‑display multiple‑choice item. It randomises
+      the order of the four answer choices, assigns them the labels A‑D, and emits
+      both the formatted prompt and a hidden answer key indicating which label holds
+      the correct solution. This presentation layer ensures a seamless user experience
+      while preserving the correct answer for downstream evaluation.
     name: present_q3_lvl4
     nodes_depended_on:
     - decide_lvl3
     - gen_q_lvl4
     nodes_dependent_on: []
-    prompt: If decide_lvl3's next_level equals 4, format gen_q_lvl4 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If the JSON output from **decide_lvl3** contains `next_level` equal to\
+      \ **4**, perform the following steps:\n1. Retrieve the JSON object produced\
+      \ by **gen_q_lvl4**, which includes the fields:\n   - `question` (the full text\
+      \ of the math problem)\n   - `correct_answer` (the exact correct solution)\n\
+      \   - `wrong_answers` (an array of three plausible distractors).\n2. Construct\
+      \ an array of the four answer strings (`correct_answer` + the three `wrong_answers`).\n\
+      3. Randomly shuffle this array and assign the labels **A**, **B**, **C**, **D**\
+      \ in the shuffled order.\n4. Output a markdown block that presents:\n   ```markdown\n\
+      \   **Question 3 (Level 4):** {question}\n   \n   A) {option_A}\n   B) {option_B}\n\
+      \   C) {option_C}\n   D) {option_D}\n   ```\n5. Additionally, return a JSON\
+      \ field `answer_key` that contains the label (A‑D) corresponding to the correct\
+      \ answer after shuffling.\n\nIf `next_level` is not 4, produce no output (or\
+      \ an empty string)."
   present_q3_lvl5:
     agent: false
-    description: Present a level‑5 question for step 3 (if decide_lvl3 chose level 5).
+    description: If decide_lvl3 determines the next question should be level 5, this
+      node presents the level 5 question generated by gen_q_lvl5 as a multiple-choice
+      question with options A-D. It randomizes the placement of the correct answer
+      among the options and includes a hidden indicator of the correct answer for
+      later evaluation.
     name: present_q3_lvl5
     nodes_depended_on:
     - decide_lvl3
     - gen_q_lvl5
     nodes_dependent_on: []
-    prompt: If decide_lvl3's next_level equals 5, format gen_q_lvl5 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: 'Based on decide_lvl3[''next_level''], if the value is 5, present the
+      multiple-choice question from gen_q_lvl5. Randomly assign the correct answer
+      (gen_q_lvl5[''correct_answer'']) to one of the options (A, B, C, D). The other
+      options should be populated with the wrong answers from gen_q_lvl5[''wrong_answers''].
+      Format the output as follows:
+
+
+      Question: {gen_q_lvl5[''question'']}
+
+      A) {option_A}
+
+      B) {option_B}
+
+      C) {option_C}
+
+      D) {option_D}
+
+
+      In a hidden field (e.g., HTML comment or a separate JSON field not displayed
+      to the user), indicate the correct option (e.g., ''A'', ''B'', ''C'', or ''D'').
+
+
+      Example:
+
+
+      Question: What is the value of 15 ÷ (2 + 3)?
+
+      A) 5
+
+      B) 3
+
+      C) 1
+
+      D) 4
+
+
+      <!-- Correct Answer: B -->'
   present_q4_lvl1:
     agent: false
-    description: Present a level‑1 question for step 4 (if decide_lvl4 chose level 1).
+    description: If the fourth‑question difficulty is resolved to level 1, this node
+      transforms the elementary‑math question generated by **gen_q_lvl1** into a polished
+      multiple‑choice format (options A‑D). The correct answer is placed at a randomly
+      chosen position, and the node returns both the formatted prompt and a hidden
+      label (A‑D) indicating the correct option. This ensures downstream nodes receive
+      a ready‑to‑display question while preserving answer integrity for evaluation.
     name: present_q4_lvl1
     nodes_depended_on:
     - decide_lvl4
     - gen_q_lvl1
     nodes_dependent_on: []
-    prompt: If decide_lvl4's next_level equals 1, format gen_q_lvl1 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "```json\n# Input context (automatically supplied)\n# decide_lvl4: { \"\
+      next_level\": <integer> }\n# gen_q_lvl1: { \"question\": <string>, \"correct_answer\"\
+      : <string>, \"wrong_answers\": [<string>, <string>, <string>] }\n\n# Action\n\
+      if decide_lvl4.next_level == 1:\n    # Assemble the four answer choices\n  \
+      \  all_answers = gen_q_lvl1.wrong_answers + [gen_q_lvl1.correct_answer]\n  \
+      \  # Randomly shuffle the answers\n    import random\n    random.shuffle(all_answers)\n\
+      \    # Map shuffled answers to labels A‑D\n    labels = ['A', 'B', 'C', 'D']\n\
+      \    labeled_answers = dict(zip(labels, all_answers))\n    # Identify which\
+      \ label holds the correct answer\n    correct_label = next(label for label,\
+      \ ans in labeled_answers.items() if ans == gen_q_lvl1.correct_answer)\n    #\
+      \ Build the multiple‑choice prompt\n    formatted_prompt = f\"{gen_q_lvl1.question}\\\
+      n\"\n    for label in labels:\n        formatted_prompt += f\"{label}) {labeled_answers[label]}\\\
+      n\"\n    # Output\n    output = {\n        \"prompt\": formatted_prompt.strip(),\n\
+      \        \"correct_option\": correct_label  # hidden from the user\n    }\n\
+      \    print(json.dumps(output))\n```\n\nThe node emits a JSON object with two\
+      \ fields: **prompt** (the full question with options A‑D) and **correct_option**\
+      \ (the hidden label of the correct answer). If **decide_lvl4.next_level** is\
+      \ not 1, the node produces no output.\n"
   present_q4_lvl2:
     agent: false
-    description: Present a level‑2 question for step 4 (if decide_lvl4 chose level 2).
+    description: When the difficulty selector (`decide_lvl4`) determines that the
+      fourth question should be at level 2, this node formats the generated level‑2
+      question (`gen_q_lvl2`) into a polished multiple‑choice prompt (options A‑D).
+      The correct answer is shuffled into a random position, and the node returns
+      both the user‑facing prompt and a hidden label indicating which option (A, B,
+      C, or D) contains the correct answer.
     name: present_q4_lvl2
     nodes_depended_on:
     - decide_lvl4
     - gen_q_lvl2
     nodes_dependent_on: []
-    prompt: If decide_lvl4's next_level equals 2, format gen_q_lvl2 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If the output of `decide_lvl4` contains `next_level` equal to 2, take\
+      \ the JSON object produced by `gen_q_lvl2` (fields: `question`, `correct_answer`,\
+      \ `wrong_answers`).\n\n1. Combine the `correct_answer` with the three `wrong_answers`\
+      \ and randomly assign them to the labels A, B, C, D.\n2. Construct a clear,\
+      \ single‑line question display using the exact text from `question`, followed\
+      \ by the four answer choices each on a new line prefixed with its label (e.g.,\
+      \ \"A) 12\").\n3. Output a JSON object with two keys:\n   - `prompt`: the fully\
+      \ formatted multiple‑choice string ready for presentation to the learner.\n\
+      \   - `correct_option`: the label (\"A\", \"B\", \"C\", or \"D\") that holds\
+      \ the correct answer.\n\nIf `next_level` is not 2, produce an empty JSON object\
+      \ `{}`.\n\n**Example output** (the order of options will vary each run):\n```json\n\
+      {\n  \"prompt\": \"What is 7 + 5?\\nA) 13\\nB) 12\\nC) 11\\nD) 14\",\n  \"correct_option\"\
+      : \"B\"\n}\n```"
   present_q4_lvl3:
     agent: false
-    description: Present a level‑3 question for step 4 (if decide_lvl4 chose level 3).
+    description: Presents the level-3 multiple-choice question generated in gen_q_lvl3
+      as question 4, if decide_lvl4 determines that the difficulty level for question
+      4 should be level 3. The answer options are randomized.
     name: present_q4_lvl3
     nodes_depended_on:
     - decide_lvl4
     - gen_q_lvl3
     nodes_dependent_on: []
-    prompt: If decide_lvl4's next_level equals 3, format gen_q_lvl3 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: 'Given the generated level 3 question (gen_q_lvl3) and the level decision
+      (decide_lvl4): First, confirm that decide_lvl4''s ''next_level'' field is equal
+      to 3. If true, present the question from gen_q_lvl3 as a multiple-choice question
+      with options A-D. Randomly assign the correct answer to one of the options (A,
+      B, C, or D). Output the formatted multiple-choice question and separately output
+      the letter (A, B, C, or D) that corresponds to the correct answer. For example:
+
+
+      Question: What is the value of x in the equation 2x + 5 = 11?
+
+      A) 4
+
+      B) 3
+
+      C) 8
+
+      D) 2
+
+
+      Correct Answer: B'
   present_q4_lvl4:
     agent: false
-    description: Present a level‑4 question for step 4 (if decide_lvl4 chose level 4).
+    description: 'Renders the fourth question when the adaptive difficulty selector
+      (`decide_lvl4`) has chosen level 4. The node consumes the JSON payload produced
+      by `gen_q_lvl4` (containing a `question`, a `correct_answer`, and three `wrong_answers`),
+      shuffles the four answer choices, assigns them labels A‑D, and outputs a fully‑formatted
+      multiple‑choice prompt. The correct answer label is emitted as a hidden comment
+      (`<!--CorrectOption: X-->`) for downstream evaluation while remaining invisible
+      to the learner.'
     name: present_q4_lvl4
     nodes_depended_on:
     - decide_lvl4
     - gen_q_lvl4
     nodes_dependent_on: []
-    prompt: If decide_lvl4's next_level equals 4, format gen_q_lvl4 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: 'If `decide_lvl4.next_level` equals **4**, perform the following steps:
+
+      1. Retrieve the JSON object from `gen_q_lvl4` with fields `question`, `correct_answer`,
+      and `wrong_answers`.
+
+      2. Build an array `answers` containing the `correct_answer` and the three `wrong_answers`.
+
+      3. Randomly shuffle `answers` and map them to the labels **A**, **B**, **C**,
+      **D**.
+
+      4. Identify which label now corresponds to the original `correct_answer` and
+      store it as `correct_label`.
+
+      5. Output the question and the four options in the exact format:
+
+      ```
+
+      <question text>
+
+
+      A) <answer A>
+
+      B) <answer B>
+
+      C) <answer C>
+
+      D) <answer D>
+
+
+      <!--CorrectOption: <correct_label>-->
+
+      ```
+
+      If `decide_lvl4.next_level` is not 4, produce no output.
+
+      The randomisation must be reproducible only within the execution of this node
+      (i.e., no external state is required).'
   present_q4_lvl5:
     agent: false
-    description: Present a level‑5 question for step 4 (if decide_lvl4 chose level 5).
+    description: Conditionally renders the fourth quiz item at the highest elementary
+      difficulty (level 5). When `decide_lvl4.next_level` equals 5, this node consumes
+      the JSON payload from `gen_q_lvl5`, randomises the placement of the correct
+      answer among three distractors, and formats a polished multiple‑choice prompt
+      labeled A‑D. The output includes the full formatted question for display and
+      a hidden field `correct_option` indicating which label (A‑D) holds the correct
+      answer, enabling downstream grading.
     name: present_q4_lvl5
     nodes_depended_on:
     - decide_lvl4
     - gen_q_lvl5
     nodes_dependent_on: []
-    prompt: If decide_lvl4's next_level equals 5, format gen_q_lvl5 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If `decide_lvl4.next_level` is 5, perform the following steps:\n1. Retrieve\
+      \ the JSON object produced by `gen_q_lvl5` containing:\n   - `question` (string)\n\
+      \   - `correct_answer` (string)\n   - `wrong_answers` (array of three strings)\n\
+      2. Construct an answer list consisting of the `correct_answer` and the three\
+      \ `wrong_answers`.\n3. Randomly shuffle this list so the correct answer appears\
+      \ in a different position each execution.\n4. Assign the shuffled answers to\
+      \ choice labels **A**, **B**, **C**, and **D** in order.\n5. Output a markdown‑compatible\
+      \ prompt:\n   ```\n   **Question 4 (Level 5):** <question>\n   \n   A) <choice\
+      \ A>\n   B) <choice B>\n   C) <choice C>\n   D) <choice D>\n   ```\n6. Additionally,\
+      \ return a hidden JSON field `{\"correct_option\": \"<label>\"}` where `<label>`\
+      \ is the letter (A‑D) that corresponds to the correct answer after shuffling.\n\
+      If `decide_lvl4.next_level` is not 5, output nothing (or an empty string)."
   present_q5_lvl1:
     agent: false
-    description: Present a level‑1 question for step 5 (if decide_lvl5 chose level 1).
+    description: When the difficulty selector (decide_lvl5) determines that the final
+      question should be at level 1, this node transforms the raw question data produced
+      by gen_q_lvl1 into a polished, learner‑friendly multiple‑choice presentation
+      for step 5. It randomly shuffles the correct answer among three distractors,
+      assigns the labels A‑D, and returns both the formatted prompt and the hidden
+      label of the correct option, enabling downstream evaluation while keeping the
+      answer concealed from the learner.
     name: present_q5_lvl1
     nodes_depended_on:
     - decide_lvl5
     - gen_q_lvl1
     nodes_dependent_on: []
-    prompt: If decide_lvl5's next_level equals 1, format gen_q_lvl1 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If the JSON field `decide_lvl5.next_level` equals **1**, perform the\
+      \ following steps:\n1. Retrieve the output of **gen_q_lvl1**, which provides:\n\
+      \   - `question` – the stem of the elementary‑math problem.\n   - `correct_answer`\
+      \ – the single correct numeric answer.\n   - `wrong_answers` – an array of three\
+      \ plausible but incorrect answers.\n2. Construct an array `options` containing\
+      \ the `correct_answer` and the three `wrong_answers`.\n3. Randomly shuffle `options`\
+      \ to ensure the correct answer appears at a non‑predictable position.\n4. Map\
+      \ the shuffled options to the labels **A**, **B**, **C**, **D** in order.\n\
+      5. Assemble a formatted prompt string:\n   ```\n   {question}\n   A) {option_A}\n\
+      \   B) {option_B}\n   C) {option_C}\n   D) {option_D}\n   ```\n   (Replace `{question}`\
+      \ and `{option_X}` with the actual text.)\n6. Determine which label (A‑D) corresponds\
+      \ to the original `correct_answer` after shuffling; store this label as `answer_key`.\n\
+      7. Output a JSON object with two fields:\n   - `prompt`: the fully formatted\
+      \ multiple‑choice question.\n   - `answer_key`: the hidden label (\"A\", \"\
+      B\", \"C\", or \"D\") that contains the correct answer.\nIf `decide_lvl5.next_level`\
+      \ is **not** 1, produce an empty JSON object (`{}`) so that downstream nodes\
+      \ can safely ignore this step."
   present_q5_lvl2:
     agent: false
-    description: Present a level‑2 question for step 5 (if decide_lvl5 chose level 2).
+    description: Presents a level-2 multiple-choice question for the fifth step. This
+      node checks the output of decide_lvl5 to confirm that level 2 was selected.
+      It then takes the question and answers generated by gen_q_lvl2, formats them
+      into a standard multiple-choice format (A-D), randomizes the position of the
+      correct answer, and outputs the formatted question along with the correct answer's
+      letter.
     name: present_q5_lvl2
     nodes_depended_on:
     - decide_lvl5
     - gen_q_lvl2
     nodes_dependent_on: []
-    prompt: If decide_lvl5's next_level equals 2, format gen_q_lvl2 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: 'If decide_lvl5''s ''next_level'' equals 2, present the level 2 question
+      generated by gen_q_lvl2. The question should be formatted as a multiple-choice
+      question with options A, B, C, and D. For example:  ''Question: What is 7 x
+      8?
+
+      A) 49
+
+      B) 56
+
+      C) 64
+
+      D) 72''.  Randomly assign the ''correct_answer'' from gen_q_lvl2 to one of the
+      options (A, B, C, or D). Assign the ''wrong_answers'' from gen_q_lvl2 to the
+      remaining options. Output the complete multiple-choice question, and separately,
+      output the letter (A, B, C, or D) corresponding to the correct answer.'
   present_q5_lvl3:
     agent: false
-    description: Present a level‑3 question for step 5 (if decide_lvl5 chose level 3).
+    description: When the difficulty decision for the fifth (final) question resolves
+      to level 3, this node consumes the level‑3 question generated by `gen_q_lvl3`
+      and transforms it into a polished four‑option multiple‑choice prompt (options A‑D).
+      The correct answer is inserted at a random position among the three distractors,
+      and the node returns both the formatted prompt and a hidden label (e.g., "B")
+      indicating which option is correct. This ensures a seamless, unbiased presentation
+      of the question to the learner while preserving the answer key for downstream
+      evaluation.
     name: present_q5_lvl3
     nodes_depended_on:
     - decide_lvl5
     - gen_q_lvl3
     nodes_dependent_on: []
-    prompt: If decide_lvl5's next_level equals 3, format gen_q_lvl3 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "## Execution Logic\n1. Retrieve the JSON payload from `decide_lvl5` and\
+      \ verify that `next_level` equals **3**. If it does not, terminate without output.\n\
+      2. Fetch the JSON object produced by `gen_q_lvl3`, which contains:\n   - `question`\
+      \ (string)\n   - `correct_answer` (string or number)\n   - `wrong_answers` (array\
+      \ of three plausible distractors)\n3. Construct a list `options` consisting\
+      \ of the `correct_answer` and the three `wrong_answers`.\n4. Randomly shuffle\
+      \ `options` and assign them to labels **A**, **B**, **C**, **D**.\n5. Identify\
+      \ which label now holds the original `correct_answer` and store it as `correct_label`\
+      \ (e.g., \"B\").\n6. **Output** a JSON object with two fields:\n   - `prompt`:\
+      \ a markdown‑formatted multiple‑choice question, for example:\n     ```markdown\n\
+      \     **Question 5 (Level 3)**\\\n     {{question}}\\\n\n     A) {{option_A}}\\\
+      \n     B) {{option_B}}\\\n     C) {{option_C}}\\\n     D) {{option_D}}\n   \
+      \  ```\n     *(Replace the placeholders with the shuffled options.)*\n   - `correct_option`:\
+      \ the hidden label (`\"A\"`, `\"B\"`, `\"C\"` or `\"D\"`) that corresponds to\
+      \ the correct answer.\n\n**Note:** An actual math question will appear in the\
+      \ `question` field coming from `gen_q_lvl3`. For illustration, a possible generated\
+      \ question might be: \"What is the value of 8 × 7?\" The node will automatically\
+      \ format whatever question is supplied.\n\n**Dependencies:** `decide_lvl5`,\
+      \ `gen_q_lvl3`.\n**Agent:** false"
   present_q5_lvl4:
     agent: false
-    description: Present a level‑4 question for step 5 (if decide_lvl5 chose level 4).
+    description: If the difficulty decision for the fifth question (decide_lvl5) selects
+      level 4, this node formats the level‑4 multiple‑choice math question generated
+      by `gen_q_lvl4`. It randomises the placement of the correct answer among four
+      options (A‑D), constructs a clean, user‑facing prompt, and appends a hidden
+      token that records which option is correct for downstream evaluation.
     name: present_q5_lvl4
     nodes_depended_on:
     - decide_lvl5
     - gen_q_lvl4
     nodes_dependent_on: []
-    prompt: If decide_lvl5's next_level equals 4, format gen_q_lvl4 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "If `decide_lvl5.next_level` equals **4**, perform the following steps:\n\
+      1. Retrieve the JSON object from `gen_q_lvl4` containing:\n   - `question` (the\
+      \ math question text)\n   - `correct_answer`\n   - `wrong_answers` (an array\
+      \ of three plausible distractors).\n2. Combine `correct_answer` with the three\
+      \ `wrong_answers` and shuffle the four items uniformly.\n3. Assign the shuffled\
+      \ answers to the labels **A**, **B**, **C**, **D**.\n4. Output the formatted\
+      \ multiple‑choice prompt in markdown, for example:\n```\n**Question:** <question>\n\
+      A. <option_A>\nB. <option_B>\nC. <option_C>\nD. <option_D>\n```\n5. On a new\
+      \ line after the prompt, emit a hidden marker that records the correct label,\
+      \ e.g. `[[ANSWER:<label>]]` where `<label>` is the letter (A‑D) that corresponds\
+      \ to the original `correct_answer`.\nThe hidden marker must not be visible to\
+      \ the end‑user but must be parsable by downstream nodes.\nIf `decide_lvl5.next_level`\
+      \ is not 4, produce no output."
   present_q5_lvl5:
     agent: false
-    description: Present a level‑5 question for step 5 (if decide_lvl5 chose level 5).
+    description: If the difficulty‑selection logic (decide_lvl5) determines that the
+      fifth question should be at level 5, this node formats the generated level‑5
+      question (from gen_q_lvl5) into a learner‑ready multiple‑choice prompt. It randomizes
+      the placement of the correct answer among options A‑D, presents the full question
+      text with the shuffled options, and securely returns the label of the correct
+      option for downstream grading.
     name: present_q5_lvl5
     nodes_depended_on:
     - decide_lvl5
     - gen_q_lvl5
     nodes_dependent_on: []
-    prompt: If decide_lvl5's next_level equals 5, format gen_q_lvl5 as a multiple‑choice
-      prompt (A‑D) with the correct answer randomly placed. Output the prompt and
-      hidden correct option label.
+    prompt: "You receive two JSON inputs:\n1. `decide_lvl5` output containing the\
+      \ field `next_level`.\n2. `gen_q_lvl5` output containing:\n   - `question` (string)\n\
+      \   - `correct_answer` (string)\n   - `wrong_answers` (array of three strings)\n\
+      \nIf `next_level` equals **5**, perform the following steps:\n1. Combine `correct_answer`\
+      \ with the three `wrong_answers` into a list of four answer strings.\n2. Randomly\
+      \ shuffle this list and assign the labels **A**, **B**, **C**, **D** to the\
+      \ shuffled answers.\n3. Construct a markdown‑style prompt consisting of:\n \
+      \  - The original `question` on its own line.\n   - Each option on a new line\
+      \ formatted as \"A) <answer>\", \"B) <answer>\", etc.\n4. Output a JSON object\
+      \ with two fields:\n   - `prompt`: the formatted question and options.\n   -\
+      \ `correct_option`: the label (A‑D) that corresponds to the original `correct_answer`\
+      \ after shuffling.\n\nIf `next_level` is not 5, return an empty JSON object\
+      \ `{}`.\n\n**Note:** The actual math question text is taken directly from `gen_q_lvl5.question`;\
+      \ no placeholder text is used."
