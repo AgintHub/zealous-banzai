@@ -1,72 +1,417 @@
 dag_type: plain_text
-description: Create a bank of elementary school math questions across five difficulty
-  levels.
-name: generate_math_question_bank
+description: Creates a five‑level adaptive set of elementary‑school math multiple‑choice
+  questions (1 correct answer, 3 plausible distractors). Difficulty moves up if the
+  simulated student answers correctly and down if incorrect. Each level is built from
+  atomic, stateless tasks that can run concurrently where possible.
+name: adaptive_elementary_math_mcq_generator
 nodes:
-  compile_question_bank:
+  assemble_mcq_1:
     agent: false
-    description: Assemble the complete question bank.
-    name: compile_question_bank
+    description: Combine the correct answer and three distractors into a shuffled
+      four‑option MCQ for level 1.
+    name: assemble_mcq_1
     nodes_depended_on:
-    - generate_level_1_questions
-    - generate_level_2_questions
-    - generate_level_3_questions
-    - generate_level_4_questions
-    - generate_level_5_questions
+    - compute_correct_answer_1
+    - generate_wrong_answer_1_1
+    - generate_wrong_answer_1_2
+    - generate_wrong_answer_1_3
     nodes_dependent_on: []
-    prompt: Combine all generated questions from the five levels into a single question
-      bank, preserving each question’s level designation.
-  define_math_topic_areas:
+    prompt: 'Take the correct answer and the three wrong answers, shuffle them randomly,
+      label them A‑D, and output a JSON object with fields: question (text), options
+      (object mapping A‑D to numbers), correct_option (letter).'
+  assemble_mcq_2:
     agent: false
-    description: Identify the core math topics to be covered in the questions.
-    name: define_math_topic_areas
+    description: Combine answers into MCQ 2.
+    name: assemble_mcq_2
+    nodes_depended_on:
+    - compute_correct_answer_2
+    - generate_wrong_answer_2_1
+    - generate_wrong_answer_2_2
+    - generate_wrong_answer_2_3
+    nodes_dependent_on: []
+    prompt: 'Shuffle the correct answer with the three wrong answers, label them A‑D,
+      and output a JSON object: question, options (A‑D), correct_option.'
+  assemble_mcq_3:
+    agent: false
+    description: Combine answers into MCQ 3.
+    name: assemble_mcq_3
+    nodes_depended_on:
+    - compute_correct_answer_3
+    - generate_wrong_answer_3_1
+    - generate_wrong_answer_3_2
+    - generate_wrong_answer_3_3
+    nodes_dependent_on: []
+    prompt: 'Shuffle the correct answer with the three wrong answers, label them A‑D,
+      and output a JSON object: question, options (A‑D), correct_option.'
+  assemble_mcq_4:
+    agent: false
+    description: Combine answers into MCQ 4.
+    name: assemble_mcq_4
+    nodes_depended_on:
+    - compute_correct_answer_4
+    - generate_wrong_answer_4_1
+    - generate_wrong_answer_4_2
+    - generate_wrong_answer_4_3
+    nodes_dependent_on: []
+    prompt: 'Shuffle the correct answer with the three wrong answers, label them A‑D,
+      and output a JSON object: question, options (A‑D), correct_option.'
+  assemble_mcq_5:
+    agent: false
+    description: Combine answers into MCQ 5.
+    name: assemble_mcq_5
+    nodes_depended_on:
+    - compute_correct_answer_5
+    - generate_wrong_answer_5_1
+    - generate_wrong_answer_5_2
+    - generate_wrong_answer_5_3
+    nodes_dependent_on: []
+    prompt: 'Shuffle the correct answer with the three wrong answers, label them A‑D,
+      and output a JSON object: question, options (A‑D), correct_option.'
+  compute_correct_answer_1:
+    agent: false
+    description: Calculate the exact answer for question 1.
+    name: compute_correct_answer_1
+    nodes_depended_on:
+    - generate_question_1
+    nodes_dependent_on: []
+    prompt: Provide the numeric answer to the supplied question. Return only the number.
+  compute_correct_answer_2:
+    agent: false
+    description: Calculate the exact answer for question 2.
+    name: compute_correct_answer_2
+    nodes_depended_on:
+    - generate_question_2
+    nodes_dependent_on: []
+    prompt: Provide the numeric answer to the supplied question. Return only the number.
+  compute_correct_answer_3:
+    agent: false
+    description: Calculate the exact answer for question 3.
+    name: compute_correct_answer_3
+    nodes_depended_on:
+    - generate_question_3
+    nodes_dependent_on: []
+    prompt: Provide the numeric answer to the supplied question. Return only the number.
+  compute_correct_answer_4:
+    agent: false
+    description: Calculate the exact answer for question 4.
+    name: compute_correct_answer_4
+    nodes_depended_on:
+    - generate_question_4
+    nodes_dependent_on: []
+    prompt: Provide the numeric answer to the supplied question. Return only the number.
+  compute_correct_answer_5:
+    agent: false
+    description: Calculate the exact answer for question 5.
+    name: compute_correct_answer_5
+    nodes_depended_on:
+    - generate_question_5
+    nodes_dependent_on: []
+    prompt: Provide the numeric answer to the supplied question. Return only the number.
+  determine_difficulty_1:
+    agent: false
+    description: Set difficulty for level 1 (uses start_difficulty).
+    name: determine_difficulty_1
+    nodes_depended_on:
+    - start_difficulty
+    nodes_dependent_on: []
+    prompt: Take the starting difficulty (easy) and output the difficulty for level 1.
+      For the first level simply repeat the input difficulty.
+  determine_difficulty_2:
+    agent: false
+    description: Adjust difficulty for level 2 based on the result of level 1.
+    name: determine_difficulty_2
+    nodes_depended_on:
+    - evaluate_answer_1
+    - determine_difficulty_1
+    nodes_dependent_on: []
+    prompt: 'Given the previous difficulty (easy/medium/hard/very hard/expert) and
+      a boolean indicating whether the student answered correctly, output the next
+      difficulty: increase one step if correct, decrease one step if incorrect, staying
+      within the five labels.'
+  determine_difficulty_3:
+    agent: false
+    description: Adjust difficulty for level 3 based on result of level 2.
+    name: determine_difficulty_3
+    nodes_depended_on:
+    - evaluate_answer_2
+    - determine_difficulty_2
+    nodes_dependent_on: []
+    prompt: Given previous difficulty and a boolean indicating correctness, output
+      the next difficulty (increase if correct, decrease if incorrect) respecting
+      the five fixed labels.
+  determine_difficulty_4:
+    agent: false
+    description: Adjust difficulty for level 4 based on result of level 3.
+    name: determine_difficulty_4
+    nodes_depended_on:
+    - evaluate_answer_3
+    - determine_difficulty_3
+    nodes_dependent_on: []
+    prompt: Given previous difficulty and a correctness boolean, output the next difficulty
+      (increase if correct, decrease if incorrect) staying within the five levels.
+  determine_difficulty_5:
+    agent: false
+    description: Adjust difficulty for level 5 based on result of level 4.
+    name: determine_difficulty_5
+    nodes_depended_on:
+    - evaluate_answer_4
+    - determine_difficulty_4
+    nodes_dependent_on: []
+    prompt: Given previous difficulty and a correctness boolean, output the next difficulty
+      (increase if correct, decrease if incorrect) respecting the five fixed labels.
+  evaluate_answer_1:
+    agent: false
+    description: Simulate a student answer for MCQ 1 and record correctness.
+    name: evaluate_answer_1
+    nodes_depended_on:
+    - assemble_mcq_1
+    nodes_dependent_on: []
+    prompt: 'Randomly pick one of the four options (A‑D) as the student''s choice.
+      Return a JSON object with fields: selected_option (letter) and is_correct (boolean).'
+  evaluate_answer_2:
+    agent: false
+    description: Simulate a student answer for MCQ 2.
+    name: evaluate_answer_2
+    nodes_depended_on:
+    - assemble_mcq_2
+    nodes_dependent_on: []
+    prompt: 'Randomly pick one of the four options (A‑D) as the student''s choice.
+      Return a JSON object with fields: selected_option and is_correct.'
+  evaluate_answer_3:
+    agent: false
+    description: Simulate a student answer for MCQ 3.
+    name: evaluate_answer_3
+    nodes_depended_on:
+    - assemble_mcq_3
+    nodes_dependent_on: []
+    prompt: 'Randomly pick one of the four options (A‑D) as the student''s choice.
+      Return a JSON object with fields: selected_option and is_correct.'
+  evaluate_answer_4:
+    agent: false
+    description: Simulate a student answer for MCQ 4.
+    name: evaluate_answer_4
+    nodes_depended_on:
+    - assemble_mcq_4
+    nodes_dependent_on: []
+    prompt: 'Randomly pick one of the four options (A‑D) as the student''s choice.
+      Return a JSON object with fields: selected_option and is_correct.'
+  final_mcq_set:
+    agent: false
+    description: Collect the five assembled MCQs into an ordered list representing
+      the adaptive quiz.
+    name: final_mcq_set
+    nodes_depended_on:
+    - assemble_mcq_1
+    - assemble_mcq_2
+    - assemble_mcq_3
+    - assemble_mcq_4
+    - assemble_mcq_5
+    nodes_dependent_on: []
+    prompt: Combine the five MCQ JSON objects (from level 1 to level 5) into a single
+      JSON array in order. Return the array.
+  generate_question_1:
+    agent: false
+    description: Create a math question matching difficulty level 1.
+    name: generate_question_1
+    nodes_depended_on:
+    - determine_difficulty_1
+    - topic_list
+    nodes_dependent_on: []
+    prompt: Given a difficulty label (easy, medium, hard, very hard, expert) and a
+      list of math topics, generate one concise elementary‑school math question appropriate
+      for the difficulty. Return only the question text.
+  generate_question_2:
+    agent: false
+    description: Create a math question matching difficulty level 2.
+    name: generate_question_2
+    nodes_depended_on:
+    - determine_difficulty_2
+    - topic_list
+    nodes_dependent_on: []
+    prompt: Using the supplied difficulty label and the list of math topics, generate
+      one concise elementary‑school math question suitable for that difficulty. Return
+      only the question text.
+  generate_question_3:
+    agent: false
+    description: Create a math question matching difficulty level 3.
+    name: generate_question_3
+    nodes_depended_on:
+    - determine_difficulty_3
+    - topic_list
+    nodes_dependent_on: []
+    prompt: Using the supplied difficulty label and math topics, generate a concise
+      elementary‑school math question for that difficulty. Return only the question
+      text.
+  generate_question_4:
+    agent: false
+    description: Create a math question matching difficulty level 4.
+    name: generate_question_4
+    nodes_depended_on:
+    - determine_difficulty_4
+    - topic_list
+    nodes_dependent_on: []
+    prompt: Using the supplied difficulty label and math topics, generate a concise
+      elementary‑school math question appropriate for that difficulty. Return only
+      the question text.
+  generate_question_5:
+    agent: false
+    description: Create a math question matching difficulty level 5.
+    name: generate_question_5
+    nodes_depended_on:
+    - determine_difficulty_5
+    - topic_list
+    nodes_dependent_on: []
+    prompt: Using the supplied difficulty label and math topics, generate a concise
+      elementary‑school math question appropriate for that difficulty. Return only
+      the question text.
+  generate_wrong_answer_1_1:
+    agent: false
+    description: Create the first plausible wrong answer for level 1.
+    name: generate_wrong_answer_1_1
+    nodes_depended_on:
+    - compute_correct_answer_1
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a plausible but incorrect numeric answer
+      (e.g., off‑by‑one, common misconception). Return only the number.
+  generate_wrong_answer_1_2:
+    agent: false
+    description: Create the second plausible wrong answer for level 1.
+    name: generate_wrong_answer_1_2
+    nodes_depended_on:
+    - compute_correct_answer_1
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a second plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_1_3:
+    agent: false
+    description: Create the third plausible wrong answer for level 1.
+    name: generate_wrong_answer_1_3
+    nodes_depended_on:
+    - compute_correct_answer_1
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a third plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_2_1:
+    agent: false
+    description: Create the first plausible wrong answer for level 2.
+    name: generate_wrong_answer_2_1
+    nodes_depended_on:
+    - compute_correct_answer_2
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a plausible but incorrect numeric answer.
+      Return only the number.
+  generate_wrong_answer_2_2:
+    agent: false
+    description: Create the second plausible wrong answer for level 2.
+    name: generate_wrong_answer_2_2
+    nodes_depended_on:
+    - compute_correct_answer_2
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a second plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_2_3:
+    agent: false
+    description: Create the third plausible wrong answer for level 2.
+    name: generate_wrong_answer_2_3
+    nodes_depended_on:
+    - compute_correct_answer_2
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a third plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_3_1:
+    agent: false
+    description: Create the first plausible wrong answer for level 3.
+    name: generate_wrong_answer_3_1
+    nodes_depended_on:
+    - compute_correct_answer_3
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a plausible but incorrect numeric answer.
+      Return only the number.
+  generate_wrong_answer_3_2:
+    agent: false
+    description: Create the second plausible wrong answer for level 3.
+    name: generate_wrong_answer_3_2
+    nodes_depended_on:
+    - compute_correct_answer_3
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a second plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_3_3:
+    agent: false
+    description: Create the third plausible wrong answer for level 3.
+    name: generate_wrong_answer_3_3
+    nodes_depended_on:
+    - compute_correct_answer_3
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a third plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_4_1:
+    agent: false
+    description: Create the first plausible wrong answer for level 4.
+    name: generate_wrong_answer_4_1
+    nodes_depended_on:
+    - compute_correct_answer_4
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a plausible but incorrect numeric answer.
+      Return only the number.
+  generate_wrong_answer_4_2:
+    agent: false
+    description: Create the second plausible wrong answer for level 4.
+    name: generate_wrong_answer_4_2
+    nodes_depended_on:
+    - compute_correct_answer_4
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a second plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_4_3:
+    agent: false
+    description: Create the third plausible wrong answer for level 4.
+    name: generate_wrong_answer_4_3
+    nodes_depended_on:
+    - compute_correct_answer_4
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a third plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_5_1:
+    agent: false
+    description: Create the first plausible wrong answer for level 5.
+    name: generate_wrong_answer_5_1
+    nodes_depended_on:
+    - compute_correct_answer_5
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a plausible but incorrect numeric answer.
+      Return only the number.
+  generate_wrong_answer_5_2:
+    agent: false
+    description: Create the second plausible wrong answer for level 5.
+    name: generate_wrong_answer_5_2
+    nodes_depended_on:
+    - compute_correct_answer_5
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a second plausible but incorrect numeric
+      answer. Return only the number.
+  generate_wrong_answer_5_3:
+    agent: false
+    description: Create the third plausible wrong answer for level 5.
+    name: generate_wrong_answer_5_3
+    nodes_depended_on:
+    - compute_correct_answer_5
+    nodes_dependent_on: []
+    prompt: Given the correct answer, produce a third plausible but incorrect numeric
+      answer. Return only the number.
+  start_difficulty:
+    agent: false
+    description: Provide the initial difficulty label for level 1.
+    name: start_difficulty
     nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: List five key elementary school math topic areas (e.g., addition, subtraction,
-      multiplication, division, fractions).
-  generate_level_1_questions:
+    prompt: Return the base difficulty for the first question. Use the label **easy**.
+      Output only the word.
+  topic_list:
     agent: false
-    description: Create level 1 questions.
-    name: generate_level_1_questions
-    nodes_depended_on:
-    - define_math_topic_areas
+    description: List elementary‑school math topics suitable for MCQs.
+    name: topic_list
+    nodes_depended_on: []
     nodes_dependent_on: []
-    prompt: Generate 5 multiple‑choice questions for level 1 with 1 correct and 3
-      incorrect options, covering the identified topics and suitable for elementary
-      students.
-  generate_level_2_questions:
-    agent: false
-    description: Create level 2 questions.
-    name: generate_level_2_questions
-    nodes_depended_on:
-    - define_math_topic_areas
-    nodes_dependent_on: []
-    prompt: Generate 5 multiple‑choice questions for level 2 with 1 correct and 3
-      incorrect options, covering the identified topics and slightly harder than level 1.
-  generate_level_3_questions:
-    agent: false
-    description: Create level 3 questions.
-    name: generate_level_3_questions
-    nodes_depended_on:
-    - define_math_topic_areas
-    nodes_dependent_on: []
-    prompt: Generate 5 multiple‑choice questions for level 3 with 1 correct and 3
-      incorrect options, covering the identified topics and harder than level 2.
-  generate_level_4_questions:
-    agent: false
-    description: Create level 4 questions.
-    name: generate_level_4_questions
-    nodes_depended_on:
-    - define_math_topic_areas
-    nodes_dependent_on: []
-    prompt: Generate 5 multiple‑choice questions for level 4 with 1 correct and 3
-      incorrect options, covering the identified topics and harder than level 3.
-  generate_level_5_questions:
-    agent: false
-    description: Create level 5 questions.
-    name: generate_level_5_questions
-    nodes_depended_on:
-    - define_math_topic_areas
-    nodes_dependent_on: []
-    prompt: Generate 5 multiple‑choice questions for level 5 with 1 correct and 3
-      incorrect options, covering the identified topics and hardest among all levels.
+    prompt: Return a JSON array of at least six elementary math topics (e.g., addition,
+      subtraction, multiplication, division, fractions, place value).
