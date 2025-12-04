@@ -1,16 +1,13 @@
 dag_type: plain_text
-description: Distributed medical diagnosis workflow with strict elemental task decomposition
-  and optimized parallel execution paths
-name: parallel_medical_diagnosis_diagram
+description: Generated workflow from UI.
+name: Generated Workflow from UI
 nodes:
   analyze_laboratory_results_part1:
     agent: false
     description: Create baseline lab analysis framework
     name: analyze_laboratory_results_part1
     nodes_depended_on: []
-    nodes_dependent_on:
-    - update_differential_diagnosis_part1
-    - update_differential_diagnosis_part2
+    nodes_dependent_on: []
     prompt: 1) Compare values to reference ranges, 2) Identify significant deviations.
       Create delta check framework with annotated critical thresholds.
   analyze_laboratory_results_part2:
@@ -18,9 +15,7 @@ nodes:
     description: Generate hypothesis correlation from lab data
     name: analyze_laboratory_results_part2
     nodes_depended_on: []
-    nodes_dependent_on:
-    - update_differential_diagnosis_part1
-    - update_differential_diagnosis_part2
+    nodes_dependent_on: []
     prompt: 1) Correlate identified deviations with current diagnostic hypothesis.
       Create structured deviation-hypothesis map with risk stratification.
   categorize_diagnostic_pathway_part1:
@@ -29,9 +24,7 @@ nodes:
     name: categorize_diagnostic_pathway_part1
     nodes_depended_on:
     - update_differential_diagnosis_part2
-    nodes_dependent_on:
-    - generate_diagnostic_summary_part1
-    - generate_diagnostic_summary_part2
+    nodes_dependent_on: []
     prompt: 1) Assign primary classification (Lab-test driven/Imaging-centric/Multimodal).
       Create evidence hierarchy with diagnostic priority metrics.
   categorize_diagnostic_pathway_part2:
@@ -40,9 +33,7 @@ nodes:
     name: categorize_diagnostic_pathway_part2
     nodes_depended_on:
     - update_differential_diagnosis_part2
-    nodes_dependent_on:
-    - generate_diagnostic_summary_part1
-    - generate_diagnostic_summary_part2
+    nodes_dependent_on: []
     prompt: 1) Document test result consistency matrix. 2) Calculate diagnostic efficiency
       scores. 3) Prioritize follow-up categories by urgency.
   categorize_initial_approach_part1:
@@ -51,9 +42,7 @@ nodes:
     name: categorize_initial_approach_part1
     nodes_depended_on:
     - merge_initial_hypotheses_part2
-    nodes_dependent_on:
-    - prioritize_diagnostic_tests_part1
-    - prioritize_diagnostic_tests_part2
+    nodes_dependent_on: []
     prompt: 1) Categorize as Symptom-driven/History-pattern driven/Mixed source. Create
       classification rationale with pattern recognition metrics.
   categorize_initial_approach_part2:
@@ -62,9 +51,7 @@ nodes:
     name: categorize_initial_approach_part2
     nodes_depended_on:
     - merge_initial_hypotheses_part2
-    nodes_dependent_on:
-    - prioritize_diagnostic_tests_part1
-    - prioritize_diagnostic_tests_part2
+    nodes_dependent_on: []
     prompt: 1) Map diagnostic pathway implications. 2) Document next steps requirement
       matrix. 3) Establish decision thresholds for follow-up.
   collect_present_symptoms_part1:
@@ -72,9 +59,7 @@ nodes:
     description: Systemic symptom inventory
     name: collect_present_symptoms_part1
     nodes_depended_on: []
-    nodes_dependent_on:
-    - generate_symptom_hypotheses_part1
-    - generate_symptom_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 'List all active symptoms with: 1) Chief complaint, 2) Duration specifics,
       3) Aggravating/alleviating factors. Create symptom categorization framework.'
   collect_present_symptoms_part2:
@@ -82,9 +67,7 @@ nodes:
     description: Symptom system mapping
     name: collect_present_symptoms_part2
     nodes_depended_on: []
-    nodes_dependent_on:
-    - generate_symptom_hypotheses_part1
-    - generate_symptom_hypotheses_part2
+    nodes_dependent_on: []
     prompt: Document system-specific manifestations (cardiovascular, respiratory).
       Create annotated symptom-interaction map with severity timelines.
   compile_specialist_input_part1:
@@ -93,9 +76,7 @@ nodes:
     name: compile_specialist_input_part1
     nodes_depended_on:
     - prepare_specialist_referrals_part2
-    nodes_dependent_on:
-    - update_differential_diagnosis_part1
-    - update_differential_diagnosis_part2
+    nodes_dependent_on: []
     prompt: 1) Format consult responses into structured differential framework. 2)
       Map diagnostic confidence levels to pathway segments.
   compile_specialist_input_part2:
@@ -104,9 +85,7 @@ nodes:
     name: compile_specialist_input_part2
     nodes_depended_on:
     - prepare_specialist_referrals_part2
-    nodes_dependent_on:
-    - update_differential_diagnosis_part1
-    - update_differential_diagnosis_part2
+    nodes_dependent_on: []
     prompt: 1) Flag discordant opinions with resolution priority metrics. 2) Create
       integration decision points for pathway refinement.
   finalize_diagnostic_conclusion_part1:
@@ -134,9 +113,7 @@ nodes:
     description: Primary history compilation
     name: gather_patient_history_part1
     nodes_depended_on: []
-    nodes_dependent_on:
-    - generate_history_hypotheses_part1
-    - generate_history_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 1) Create structured 7-pillar medical history. 2) Assign timestamps. 3)
       Calculate historical relevance rankings.
   gather_patient_history_part2:
@@ -144,9 +121,7 @@ nodes:
     description: History pattern recognition
     name: gather_patient_history_part2
     nodes_depended_on: []
-    nodes_dependent_on:
-    - generate_history_hypotheses_part1
-    - generate_history_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 1) Map condition progression patterns. 2) Document medication-allergy
       interactions. 3) Create risk factor matrix.
   generate_diagnostic_summary_part1:
@@ -156,9 +131,7 @@ nodes:
     nodes_depended_on:
     - update_differential_diagnosis_part2
     - categorize_diagnostic_pathway_part1
-    nodes_dependent_on:
-    - finalize_diagnostic_conclusion_part1
-    - finalize_diagnostic_conclusion_part2
+    nodes_dependent_on: []
     prompt: 1) Create probable condition framework with ICD-10 mapping. 2) Document
       differential exclusion status with timestamps.
   generate_diagnostic_summary_part2:
@@ -168,9 +141,7 @@ nodes:
     nodes_depended_on:
     - update_differential_diagnosis_part2
     - categorize_diagnostic_pathway_part1
-    nodes_dependent_on:
-    - finalize_diagnostic_conclusion_part1
-    - finalize_diagnostic_conclusion_part2
+    nodes_dependent_on: []
     prompt: 1) Calculate risk stratification score. 2) Create pathway validation matrix
       across differentials. 3) Map required treatment interfaces.
   generate_history_hypotheses_part1:
@@ -179,9 +150,7 @@ nodes:
     name: generate_history_hypotheses_part1
     nodes_depended_on:
     - gather_patient_history_part2
-    nodes_dependent_on:
-    - merge_initial_hypotheses_part1
-    - merge_initial_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 1) Generate 3-5 historical patterns hypotheses. 2) Annotate with progression
       risk scores. 3) Map diagnostic code interactions.
   generate_history_hypotheses_part2:
@@ -190,9 +159,7 @@ nodes:
     name: generate_history_hypotheses_part2
     nodes_depended_on:
     - gather_patient_history_part2
-    nodes_dependent_on:
-    - merge_initial_hypotheses_part1
-    - merge_initial_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 1) Establish familial risk validation metrics. 2) Create medication-allergy
       interaction warnings. 3) Calculate pattern urgency scores.
   generate_symptom_hypotheses_part1:
@@ -201,9 +168,7 @@ nodes:
     name: generate_symptom_hypotheses_part1
     nodes_depended_on:
     - collect_present_symptoms_part2
-    nodes_dependent_on:
-    - merge_initial_hypotheses_part1
-    - merge_initial_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 1) Generate 3-5 symptom-based hypotheses with ICD-10 mappings. 2) Calculate
       population prevalence metrics. 3) Assign urgency color coding.
   generate_symptom_hypotheses_part2:
@@ -212,9 +177,7 @@ nodes:
     name: generate_symptom_hypotheses_part2
     nodes_depended_on:
     - collect_present_symptoms_part2
-    nodes_dependent_on:
-    - merge_initial_hypotheses_part1
-    - merge_initial_hypotheses_part2
+    nodes_dependent_on: []
     prompt: 1) Map symptom-interaction pathways. 2) Create mechanistic rationale framework.
       3) Calculate pattern specificity scores.
   merge_initial_hypotheses_part1:
@@ -224,10 +187,7 @@ nodes:
     nodes_depended_on:
     - generate_symptom_hypotheses_part2
     - generate_history_hypotheses_part1
-    nodes_dependent_on:
-    - categorize_initial_approach_part1
-    - categorize_initial_approach_part2
-    - prioritize_diagnostic_tests_part1
+    nodes_dependent_on: []
     prompt: 1) Create weighted probability matrix. 2) Identify overlapping differential
       patterns. 3) Document unique diagnostic markers.
   merge_initial_hypotheses_part2:
@@ -237,10 +197,7 @@ nodes:
     nodes_depended_on:
     - generate_symptom_hypotheses_part2
     - generate_history_hypotheses_part1
-    nodes_dependent_on:
-    - categorize_initial_approach_part1
-    - categorize_initial_approach_part2
-    - prioritize_diagnostic_tests_part1
+    nodes_dependent_on: []
     prompt: 1) Generate prioritized hypothesis list by certainty. 2) Create decision
       threshold framework. 3) Map required validation pathways.
   order_imaging_studies_part1:
@@ -249,9 +206,7 @@ nodes:
     name: order_imaging_studies_part1
     nodes_depended_on:
     - prioritize_diagnostic_tests_part2
-    nodes_dependent_on:
-    - review_imaging_findings_part1
-    - review_imaging_findings_part2
+    nodes_dependent_on: []
     prompt: 1) Select imaging modalities by anatomical location. 2) Calculate preparation
       requirement matrices. 3) Map contrast usage constraints.
   order_imaging_studies_part2:
@@ -260,9 +215,7 @@ nodes:
     name: order_imaging_studies_part2
     nodes_depended_on:
     - prioritize_diagnostic_tests_part2
-    nodes_dependent_on:
-    - review_imaging_findings_part1
-    - review_imaging_findings_part2
+    nodes_dependent_on: []
     prompt: 1) Calculate radiation dose metrics. 2) Create safety constraint validation
       framework. 3) Map procedural timing requirements.
   order_laboratory_tests_part1:
@@ -271,9 +224,7 @@ nodes:
     name: order_laboratory_tests_part1
     nodes_depended_on:
     - prioritize_diagnostic_tests_part2
-    nodes_dependent_on:
-    - analyze_laboratory_results_part1
-    - analyze_laboratory_results_part2
+    nodes_dependent_on: []
     prompt: 1) List tests by diagnostic hypothesis. 2) Create CPT code matrix. 3)
       Map specimen collection frameworks.
   order_laboratory_tests_part2:
@@ -282,9 +233,7 @@ nodes:
     name: order_laboratory_tests_part2
     nodes_depended_on:
     - prioritize_diagnostic_tests_part2
-    nodes_dependent_on:
-    - analyze_laboratory_results_part1
-    - analyze_laboratory_results_part2
+    nodes_dependent_on: []
     prompt: 1) Calculate reference range alignment. 2) Map rapid testing protocols.
       3) Create priority validation matrices.
   prepare_specialist_referrals_part1:
@@ -293,9 +242,7 @@ nodes:
     name: prepare_specialist_referrals_part1
     nodes_depended_on:
     - prioritize_diagnostic_tests_part2
-    nodes_dependent_on:
-    - compile_specialist_input_part1
-    - compile_specialist_input_part2
+    nodes_dependent_on: []
     prompt: 1) Map specialty requirements by hypothesis. 2) Create core consultation
       question frameworks. 3) Assign tiered priority metrics.
   prepare_specialist_referrals_part2:
@@ -304,9 +251,7 @@ nodes:
     name: prepare_specialist_referrals_part2
     nodes_depended_on:
     - prioritize_diagnostic_tests_part2
-    nodes_dependent_on:
-    - compile_specialist_input_part1
-    - compile_specialist_input_part2
+    nodes_dependent_on: []
     prompt: 1) Calculate time-sensitive consultation requirements. 2) Map multidisciplinary
       board requirements. 3) Create decision threshold timelines.
   prioritize_diagnostic_tests_part1:
@@ -315,10 +260,7 @@ nodes:
     name: prioritize_diagnostic_tests_part1
     nodes_depended_on:
     - merge_initial_hypotheses_part2
-    nodes_dependent_on:
-    - order_laboratory_tests_part1
-    - order_imaging_studies_part1
-    - prepare_specialist_referrals_part1
+    nodes_dependent_on: []
     prompt: 1) Select top diagnostic tests by hypothesis. 2) Create yield versus risk
       matrices. 3) Map priority validation frameworks.
   prioritize_diagnostic_tests_part2:
@@ -327,10 +269,7 @@ nodes:
     name: prioritize_diagnostic_tests_part2
     nodes_depended_on:
     - merge_initial_hypotheses_part2
-    nodes_dependent_on:
-    - order_laboratory_tests_part1
-    - order_imaging_studies_part1
-    - prepare_specialist_referrals_part1
+    nodes_dependent_on: []
     prompt: 1) Calculate cost-benefit ratios for diagnostics. 2) Map rare condition
       specificity thresholds. 3) Create execution sequence constraints.
   request_confirmatory_testing_part1:
@@ -339,9 +278,7 @@ nodes:
     name: request_confirmatory_testing_part1
     nodes_depended_on:
     - generate_diagnostic_summary_part2
-    nodes_dependent_on:
-    - finalize_diagnostic_conclusion_part1
-    - finalize_diagnostic_conclusion_part2
+    nodes_dependent_on: []
     prompt: 1) Create gold-standard test framework by differential. 2) Map invasiveness
       constraints to priority status. 3) Generate procedural requirement matrices.
   request_confirmatory_testing_part2:
@@ -350,9 +287,7 @@ nodes:
     name: request_confirmatory_testing_part2
     nodes_depended_on:
     - generate_diagnostic_summary_part2
-    nodes_dependent_on:
-    - finalize_diagnostic_conclusion_part1
-    - finalize_diagnostic_conclusion_part2
+    nodes_dependent_on: []
     prompt: 1) Calculate procedure cost-benefit ratios. 2) Create decision threshold
       validation metrics. 3) Map execution sequence dependencies.
   review_imaging_findings_part1:
@@ -361,9 +296,7 @@ nodes:
     name: review_imaging_findings_part1
     nodes_depended_on:
     - order_imaging_studies_part2
-    nodes_dependent_on:
-    - update_differential_diagnosis_part1
-    - update_differential_diagnosis_part2
+    nodes_dependent_on: []
     prompt: 1) Map abnormalities by anatomical regions. 2) Calculate severity grade
       metrics. 3) Create finding-differential correlation matrix.
   review_imaging_findings_part2:
@@ -372,9 +305,7 @@ nodes:
     name: review_imaging_findings_part2
     nodes_depended_on:
     - order_imaging_studies_part2
-    nodes_dependent_on:
-    - update_differential_diagnosis_part1
-    - update_differential_diagnosis_part2
+    nodes_dependent_on: []
     prompt: 1) Compare findings with historical imaging. 2) Create change rate metrics.
       3) Document temporal progression patterns.
   update_differential_diagnosis_part1:
@@ -385,9 +316,7 @@ nodes:
     - analyze_laboratory_results_part1
     - review_imaging_findings_part1
     - compile_specialist_input_part1
-    nodes_dependent_on:
-    - finalize_diagnostic_conclusion_part1
-    - generate_diagnostic_summary_part1
+    nodes_dependent_on: []
     prompt: 1) Promote hypothesis based on objective results. 2) Deprioritize invalidated
       differentials. 3) Create foundational validation framework.
   update_differential_diagnosis_part2:
@@ -398,8 +327,6 @@ nodes:
     - analyze_laboratory_results_part2
     - review_imaging_findings_part2
     - compile_specialist_input_part2
-    nodes_dependent_on:
-    - finalize_diagnostic_conclusion_part1
-    - generate_diagnostic_summary_part1
+    nodes_dependent_on: []
     prompt: 1) Add emerging differentials. 2) Create decision threshold matrix. 3)
       Map next steps validation constraints.
